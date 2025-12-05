@@ -159,6 +159,7 @@ venv.bak/
 dmypy.json
 *.csv
 *.xlsx
+PLAN.md
 # Pyre type checker
 .pyre/
 
