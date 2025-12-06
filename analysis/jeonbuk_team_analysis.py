@@ -40,41 +40,77 @@ def calculate_player_profile(df, player_id, match_info_df=None):
     game_count = player_data['game_id'].nunique()
     event_count = len(player_data)
     
-    # 팀 승률 기여도 계산 (해당 선수가 뛴 경기에서 팀 승률)
+    # WAR (Wins Above Replacement) 계산
+    # 선수가 뛴 경기에서의 팀 승률 vs 선수가 뛰지 않은 경기에서의 팀 승률 비교
     team_win_rate = None
+    war = None
+    war_games_with = 0
+    war_games_without = 0
+    
     if match_info_df is not None:
         player_games = player_data['game_id'].unique()
-        team_wins = 0
-        team_draws = 0
-        team_losses = 0
+        player_team_id = player_data['team_id'].iloc[0] if len(player_data) > 0 else None
         
-        for game_id in player_games:
-            game_info = match_info_df[match_info_df['game_id'] == game_id]
-            if len(game_info) > 0:
-                game_data = player_data[player_data['game_id'] == game_id]
-                if len(game_data) > 0:
-                    player_team_id = game_data['team_id'].iloc[0]
+        if player_team_id is not None:
+            # 선수가 뛴 경기에서의 팀 승률
+            wins_with = 0
+            games_with = len(player_games)
+            
+            for game_id in player_games:
+                game_info = match_info_df[match_info_df['game_id'] == game_id]
+                if len(game_info) > 0:
                     is_home = game_info['home_team_id'].iloc[0] == player_team_id
                     home_score = game_info['home_score'].iloc[0]
                     away_score = game_info['away_score'].iloc[0]
                     
                     if is_home:
                         if home_score > away_score:
-                            team_wins += 1
-                        elif home_score == away_score:
-                            team_draws += 1
-                        else:
-                            team_losses += 1
+                            wins_with += 1
                     else:
                         if away_score > home_score:
-                            team_wins += 1
-                        elif away_score == home_score:
-                            team_draws += 1
-                        else:
-                            team_losses += 1
-        
-        if game_count > 0:
-            team_win_rate = team_wins / game_count
+                            wins_with += 1
+            
+            if games_with > 0:
+                team_win_rate = wins_with / games_with
+            
+            # 선수가 뛰지 않은 경기에서의 팀 승률
+            # 해당 팀의 모든 경기 찾기
+            team_games = match_info_df[
+                (match_info_df['home_team_id'] == player_team_id) | 
+                (match_info_df['away_team_id'] == player_team_id)
+            ]['game_id'].unique()
+            
+            # 선수가 뛰지 않은 경기
+            games_without = [g for g in team_games if g not in player_games]
+            wins_without = 0
+            games_without_count = len(games_without)
+            
+            for game_id in games_without:
+                game_info = match_info_df[match_info_df['game_id'] == game_id]
+                if len(game_info) > 0:
+                    is_home = game_info['home_team_id'].iloc[0] == player_team_id
+                    home_score = game_info['home_score'].iloc[0]
+                    away_score = game_info['away_score'].iloc[0]
+                    
+                    if is_home:
+                        if home_score > away_score:
+                            wins_without += 1
+                    else:
+                        if away_score > home_score:
+                            wins_without += 1
+            
+            # WAR 계산: 선수가 뛴 경기 승률 - 선수가 뛰지 않은 경기 승률
+            if games_with > 0 and games_without_count > 0:
+                win_rate_with = wins_with / games_with
+                win_rate_without = wins_without / games_without_count
+                war = win_rate_with - win_rate_without
+                war_games_with = games_with
+                war_games_without = games_without_count
+            elif games_with > 0:
+                # 선수가 뛰지 않은 경기가 없으면 (모든 경기 출전) WAR는 0으로 설정
+                war = 0.0
+                war_games_with = games_with
+                war_games_without = 0
     
     # 패스 관련
     passes = player_data[player_data['type_name'] == 'Pass'].copy()
@@ -282,30 +318,53 @@ def calculate_role_fit_score(player_profile, role_template, position_average=Non
         elif game_count >= 15:
             game_bonus = 0.5
         
-        # 팀 승률 기여도 보너스/페널티
-        # 승률이 높을수록 보너스, 낮을수록 페널티
+        # WAR 기반 보너스 (Wins Above Replacement)
+        # WAR는 선수가 뛴 경기 승률 - 선수가 뛰지 않은 경기 승률
+        # 약팀에서도 승리에 기여한 선수를 평가할 수 있음
+        war = player_profile.get('war', 0.0)
+        war_bonus = 0.0
+        
+        # WAR가 높을수록 보너스 (최대 +3.0점)
+        if war >= 0.3:  # 30%p 이상 개선
+            war_bonus = 3.0
+        elif war >= 0.2:  # 20%p 이상 개선
+            war_bonus = 2.0
+        elif war >= 0.1:  # 10%p 이상 개선
+            war_bonus = 1.0
+        elif war >= 0.05:  # 5%p 이상 개선
+            war_bonus = 0.5
+        elif war <= -0.3:  # 30%p 이상 악화
+            war_bonus = -3.0
+        elif war <= -0.2:  # 20%p 이상 악화
+            war_bonus = -2.0
+        elif war <= -0.1:  # 10%p 이상 악화
+            war_bonus = -1.0
+        elif war <= -0.05:  # 5%p 이상 악화
+            war_bonus = -0.5
+        
+        # 기존 팀 승률도 보조 지표로 유지 (하지만 가중치 낮춤)
         team_win_rate = player_profile.get('team_win_rate', 0.5)
         win_rate_bonus = 0.0
         if team_win_rate >= 0.6:  # 60% 이상 승률
-            win_rate_bonus = 1.0
+            win_rate_bonus = 0.5  # 기존 1.0에서 0.5로 감소
         elif team_win_rate >= 0.5:  # 50% 이상 승률
-            win_rate_bonus = 0.5
+            win_rate_bonus = 0.25  # 기존 0.5에서 0.25로 감소
         elif team_win_rate < 0.3:  # 30% 미만 승률
-            win_rate_bonus = -1.0  # 페널티
+            win_rate_bonus = -0.5  # 기존 -1.0에서 -0.5로 완화
         elif team_win_rate < 0.4:  # 40% 미만 승률
-            win_rate_bonus = -0.5  # 페널티
+            win_rate_bonus = -0.25  # 기존 -0.5에서 -0.25로 완화
         
         # 최종 점수에 보너스 추가
-        final_score = adjusted_score + game_bonus + win_rate_bonus
+        final_score = adjusted_score + game_bonus + war_bonus + win_rate_bonus
         
-        return final_score, raw_score, confidence, cosine_sim * 100, euclidean_score * 100, game_bonus, win_rate_bonus
+        return final_score, raw_score, confidence, cosine_sim * 100, euclidean_score * 100, game_bonus, war_bonus, win_rate_bonus
     
-    return raw_score, raw_score, 1.0, cosine_sim * 100, euclidean_score * 100, 0.0, 0.0
+    return raw_score, raw_score, 1.0, cosine_sim * 100, euclidean_score * 100, 0.0, 0.0, 0.0
 
 def find_best_role_for_player(player_profile, role_templates, player_position, position_average=None):
     """선수에게 가장 적합한 롤 찾기"""
     if player_profile is None:
-        return None, 0, 0, 1.0, 0, 0, 0.0, 0.0
+        return None, 0, 0, 1.0, 0, 0, 0.0, 0.0, 0.0
     
     best_role = None
     best_score = 0
@@ -321,7 +380,7 @@ def find_best_role_for_player(player_profile, role_templates, player_position, p
             result = calculate_role_fit_score(player_profile, template, position_average, apply_sample_size_correction=True)
             
             if result is not None:
-                score, raw_score, confidence, cosine_score, euclidean_score, game_bonus, win_rate_bonus = result
+                score, raw_score, confidence, cosine_score, euclidean_score, game_bonus, war_bonus, win_rate_bonus = result
                 if score > best_score:
                     best_score = score
                     best_raw_score = raw_score
@@ -329,10 +388,11 @@ def find_best_role_for_player(player_profile, role_templates, player_position, p
                     best_cosine = cosine_score
                     best_euclidean = euclidean_score
                     best_game_bonus = game_bonus
+                    best_war_bonus = war_bonus
                     best_win_rate_bonus = win_rate_bonus
                     best_role = role_name
     
-    return best_role, best_score, best_raw_score, best_confidence, best_cosine, best_euclidean, best_game_bonus, best_win_rate_bonus
+    return best_role, best_score, best_raw_score, best_confidence, best_cosine, best_euclidean, best_game_bonus, best_war_bonus, best_win_rate_bonus
 
 def get_jeonbuk_players(df):
     """전북 현대 모터스 선수 목록 추출"""
@@ -807,7 +867,7 @@ def create_rankings_for_all_roles(df, role_templates, match_info_df, min_games=5
                 
                 result = calculate_role_fit_score(profile, template, None, apply_sample_size_correction=True)
                 if result is not None:
-                    score, raw_score, confidence, cosine_score, euclidean_score, game_bonus, win_rate_bonus = result
+                    score, raw_score, confidence, cosine_score, euclidean_score, game_bonus, war_bonus, win_rate_bonus = result
                     role_rankings.append({
                         'player_id': player_id,
                         'player_name': player_name,
@@ -817,8 +877,12 @@ def create_rankings_for_all_roles(df, role_templates, match_info_df, min_games=5
                         'raw_score': raw_score,
                         'confidence': confidence,
                         'game_bonus': game_bonus,
+                        'war_bonus': war_bonus,
                         'win_rate_bonus': win_rate_bonus,
                         'team_win_rate': profile.get('team_win_rate', 0.5),
+                        'war': profile.get('war', 0.0),
+                        'war_games_with': profile.get('war_games_with', 0),
+                        'war_games_without': profile.get('war_games_without', 0),
                         'game_count': profile.get('game_count', 0),
                         'event_count': profile.get('event_count', 0)
                     })
@@ -1067,7 +1131,7 @@ def main():
         if profile is None:
             continue
         
-        role, fit_score, raw_score, confidence, cosine_score, euclidean_score, game_bonus, win_rate_bonus = find_best_role_for_player(
+        role, fit_score, raw_score, confidence, cosine_score, euclidean_score, game_bonus, war_bonus, win_rate_bonus = find_best_role_for_player(
             profile, role_templates, position, None
         )
         if role is None:
