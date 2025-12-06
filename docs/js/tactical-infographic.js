@@ -116,25 +116,39 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         // DocumentFragment로 배치 최적화
         const fieldFragment = document.createDocumentFragment();
         
-        // 같은 포지션의 선수들끼리 듀오인 경우 - 공간 활용 최적화
+        // 같은 포지션의 선수들끼리 듀오인 경우 - 표준 포지션 배치에 맞춰 조정
         if (samePosition && player1Pos && player2Pos) {
-            // 필드 크기 고려하여 적절한 간격으로 배치
-            const fieldWidth = 100; // viewBox 기준
-            const fieldHeight = 68;
-            
-            // 중앙 포지션: 상하로 배치 (공간 활용)
-            if (player1.position === 'CB' || player1.position === 'CM' || player1.position === 'ST' || 
-                player1.position === 'CDM' || player1.position === 'CAM' || player1.position === 'CF') {
-                // 상하로 배치 (더 넓은 간격 - 텍스트 겹침 방지)
-                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 8 };
-                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 8 };
+            // 포지션별 표준 배치에 따라 간격 조정
+            if (player1.position === 'CB') {
+                // CB: 페널티 박스 중앙에 일정 간격을 두고 좌우 배치
+                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 6 }; // 위쪽 CB
+                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 6 }; // 아래쪽 CB
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
                 fieldFragment.appendChild(marker1);
                 fieldFragment.appendChild(marker2);
                 
-                // 패스 연결선
+                const connection = createPassConnection(adjustedPos1.x, adjustedPos1.y, adjustedPos2.x, adjustedPos2.y, duo.pass_frequency);
+                let defs = fieldSVG.querySelector('defs');
+                if (!defs) {
+                    defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                    fieldSVG.insertBefore(defs, fieldSVG.firstChild);
+                }
+                if (connection.marker) {
+                    defs.appendChild(connection.marker);
+                }
+                fieldFragment.appendChild(connection.line);
+            } else if (player1.position === 'CM' || player1.position === 'CDM' || player1.position === 'CAM') {
+                // 미드필더: 중앙 미드필드 영역에 배치
+                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 6 }; // 위쪽
+                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 6 }; // 아래쪽
+                
+                const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
+                const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
+                fieldFragment.appendChild(marker1);
+                fieldFragment.appendChild(marker2);
+                
                 const connection = createPassConnection(adjustedPos1.x, adjustedPos1.y, adjustedPos2.x, adjustedPos2.y, duo.pass_frequency);
                 let defs = fieldSVG.querySelector('defs');
                 if (!defs) {
@@ -149,16 +163,15 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
                        player1.position === 'LWB' || player1.position === 'RWB' ||
                        player1.position === 'LM' || player1.position === 'RM' ||
                        player1.position === 'LW' || player1.position === 'RW') {
-                // 측면 포지션: 좌우로 배치 (측면 공간 활용 - 텍스트 겹침 방지)
-                const adjustedPos1 = { x: player1Pos.x - 7, y: player1Pos.y };
-                const adjustedPos2 = { x: player2Pos.x + 7, y: player2Pos.y };
+                // 측면 포지션: 좌우로 배치
+                const adjustedPos1 = { x: player1Pos.x - 5, y: player1Pos.y };
+                const adjustedPos2 = { x: player2Pos.x + 5, y: player2Pos.y };
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
                 fieldFragment.appendChild(marker1);
                 fieldFragment.appendChild(marker2);
                 
-                // 패스 연결선
                 const connection = createPassConnection(adjustedPos1.x, adjustedPos1.y, adjustedPos2.x, adjustedPos2.y, duo.pass_frequency);
                 let defs = fieldSVG.querySelector('defs');
                 if (!defs) {
@@ -170,16 +183,15 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
                 }
                 fieldFragment.appendChild(connection.line);
             } else {
-                // 기타 포지션: 상하로 배치 (텍스트 겹침 방지)
-                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 8 };
-                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 8 };
+                // 기타 포지션: 상하로 배치
+                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 6 };
+                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 6 };
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
                 fieldFragment.appendChild(marker1);
                 fieldFragment.appendChild(marker2);
                 
-                // 패스 연결선
                 const connection = createPassConnection(adjustedPos1.x, adjustedPos1.y, adjustedPos2.x, adjustedPos2.y, duo.pass_frequency);
                 let defs = fieldSVG.querySelector('defs');
                 if (!defs) {
