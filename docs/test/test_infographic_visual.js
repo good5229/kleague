@@ -75,6 +75,19 @@ function testClusterInfographic() {
     test('같은 위치 선수 이름 콤마 구분', 
          cmGroup && cmGroup.players.map(p => p.name).join(', ') === '이승모, 류재문');
     test('좌표 반올림 처리', cmGroup && cmGroup.pos.x === 35 && cmGroup.pos.y === 34);
+    
+    // 노드 충돌 방지 테스트
+    if (typeof calculateMarkerBounds === 'function' && typeof checkCollision === 'function') {
+        const bounds1 = calculateMarkerBounds(35, 34, '이승모, 류재문');
+        const bounds2 = calculateMarkerBounds(35, 34, '최준');
+        const collision = checkCollision(bounds1, bounds2, 3);
+        test('같은 위치 노드 충돌 감지', collision === true);
+        
+        const bounds3 = calculateMarkerBounds(35, 34, '이승모, 류재문');
+        const bounds4 = calculateMarkerBounds(50, 50, '최준');
+        const noCollision = checkCollision(bounds3, bounds4, 3);
+        test('다른 위치 노드 충돌 없음', noCollision === false);
+    }
 }
 
 // 2. 듀오 인포그래픽 테스트

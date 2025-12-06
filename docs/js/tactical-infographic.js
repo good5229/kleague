@@ -298,6 +298,117 @@ function createWinRateGauge(winRate, gameCount) {
     `;
 }
 
+// 텍스트 바운딩 박스 계산 (대략적 추정)
+function calculateTextBounds(text, x, y, fontSize = 2.5) {
+    // 한글 기준 대략적인 문자 폭 (fontSize * 0.8)
+    const charWidth = fontSize * 0.8;
+    const textWidth = text.length * charWidth;
+    const textHeight = fontSize * 1.2;
+    
+    // 텍스트는 마커 위에 표시되므로 (y - 6) 위치
+    const textY = y - 6;
+    
+    return {
+        left: x - textWidth / 2,
+        right: x + textWidth / 2,
+        top: textY - textHeight / 2,
+        bottom: textY + textHeight / 2,
+        width: textWidth,
+        height: textHeight
+    };
+}
+
+// 마커 바운딩 박스 계산 (원형 마커 + 텍스트 포함)
+function calculateMarkerBounds(x, y, text, markerRadius = 3.5, fontSize = 2.5) {
+    const textBounds = calculateTextBounds(text, x, y, fontSize);
+    const markerTop = y - markerRadius;
+    const markerBottom = y + markerRadius;
+    const markerLeft = x - markerRadius;
+    const markerRight = x + markerRadius;
+    
+    // 마커와 텍스트를 모두 포함하는 바운딩 박스
+    return {
+        left: Math.min(textBounds.left, markerLeft),
+        right: Math.max(textBounds.right, markerRight),
+        top: Math.min(textBounds.top, markerTop),
+        bottom: Math.max(textBounds.bottom, markerBottom),
+        centerX: x,
+        centerY: y
+    };
+}
+
+// 두 바운딩 박스 간 충돌 감지
+function checkCollision(bounds1, bounds2, minPadding = 2) {
+    return !(
+        bounds1.right + minPadding < bounds2.left ||
+        bounds2.right + minPadding < bounds1.left ||
+        bounds1.bottom + minPadding < bounds2.top ||
+        bounds2.bottom + minPadding < bounds1.top
+    );
+}
+
+// 노드 위치 조정 (충돌 방지)
+function adjustNodePositions(nodes, fieldWidth = 100, fieldHeight = 68) {
+    const adjustedNodes = [];
+    const minPadding = 3; // 최소 여백
+    
+    nodes.forEach((node, idx) => {
+        let adjustedPos = { x: node.x, y: node.y };
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        // 이전 노드들과 충돌하지 않을 때까지 위치 조정
+        while (attempts < maxAttempts) {
+            let hasCollision = false;
+            const currentBounds = calculateMarkerBounds(adjustedPos.x, adjustedPos.y, node.text);
+            
+            // 이전에 배치된 노드들과 충돌 확인
+            for (let i = 0; i < adjustedNodes.length; i++) {
+                const prevBounds = calculateMarkerBounds(
+                    adjustedNodes[i].x, 
+                    adjustedNodes[i].y, 
+                    adjustedNodes[i].text
+                );
+                
+                if (checkCollision(currentBounds, prevBounds, minPadding)) {
+                    hasCollision = true;
+                    break;
+                }
+            }
+            
+            if (!hasCollision) {
+                // 필드 경계 내에 있는지 확인
+                const bounds = calculateMarkerBounds(adjustedPos.x, adjustedPos.y, node.text);
+                if (bounds.left >= 0 && bounds.right <= fieldWidth &&
+                    bounds.top >= 0 && bounds.bottom <= fieldHeight) {
+                    break;
+                }
+            }
+            
+            // 충돌이 있거나 경계를 벗어나면 위치 조정
+            // 원형 패턴으로 위치 탐색
+            const angle = (attempts * 0.5) % (Math.PI * 2);
+            const radius = 2 + (attempts * 0.3);
+            adjustedPos = {
+                x: node.x + Math.cos(angle) * radius,
+                y: node.y + Math.sin(angle) * radius
+            };
+            
+            attempts++;
+        }
+        
+        adjustedNodes.push({
+            x: adjustedPos.x,
+            y: adjustedPos.y,
+            text: node.text,
+            color: node.color,
+            players: node.players
+        });
+    });
+    
+    return adjustedNodes;
+}
+
 // 선수 마커 생성 (선수 이름 표시 개선)
 function createPlayerMarker(playerName, x, y, color) {
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -488,26 +599,51 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
             });
         }
         
-        // 그룹화된 선수들을 마커로 생성
+        // 그룹화된 선수들을 노드 배열로 준비 (위치 조정 전)
+        const nodesToPlace = [];
         playersByLocation.forEach((group, locationKey) => {
+            let text, hue, color;
             if (group.players.length === 1) {
                 // 단일 선수
                 const player = group.players[0];
-                const hue = (player.id || 0) % 360;
-                const color = `hsl(${hue}, 70%, 50%)`;
-                const marker = createPlayerMarker(player.name, group.pos.x, group.pos.y, color);
-                fieldFragment.appendChild(marker);
+                text = player.name;
+                hue = (player.id || 0) % 360;
             } else {
                 // 같은 위치의 여러 선수 - 콤마로 구분
-                const names = group.players.map(p => p.name).join(', ');
-                const hue = (group.players[0].id || 0) % 360;
-                const color = `hsl(${hue}, 70%, 50%)`;
-                const marker = createPlayerMarker(names, group.pos.x, group.pos.y, color);
-                fieldFragment.appendChild(marker);
+                text = group.players.map(p => p.name).join(', ');
+                hue = (group.players[0].id || 0) % 360;
             }
+            color = `hsl(${hue}, 70%, 50%)`;
+            
+            nodesToPlace.push({
+                x: group.pos.x,
+                y: group.pos.y,
+                text: text,
+                color: color,
+                players: group.players
+            });
         });
         
-        // 클러스터 연결선 (선수 간 패스) - 최적화: 상위 연결만 표시
+        // 노드 위치 조정 (충돌 방지)
+        const fieldWidth = 100; // viewBox 기준
+        const fieldHeight = 68;
+        const adjustedNodes = adjustNodePositions(nodesToPlace, fieldWidth, fieldHeight);
+        
+        // 조정된 위치로 마커 생성 및 위치 매핑
+        const adjustedPositionsMap = new Map(); // playerId -> adjusted position
+        adjustedNodes.forEach((node, nodeIdx) => {
+            const marker = createPlayerMarker(node.text, node.x, node.y, node.color);
+            fieldFragment.appendChild(marker);
+            
+            // 조정된 위치를 선수 ID에 매핑 (연결선용)
+            node.players.forEach(player => {
+                if (player.id) {
+                    adjustedPositionsMap.set(player.id, { x: node.x, y: node.y });
+                }
+            });
+        });
+        
+        // 클러스터 연결선 (선수 간 패스) - 조정된 위치 사용
         let defs = fieldSVG.querySelector('defs');
         if (!defs) {
             defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -519,8 +655,9 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
         const playerIds = Array.from(playerPositions.keys());
         for (let i = 0; i < playerIds.length && connections.length < 10; i++) {
             for (let j = i + 1; j < playerIds.length && connections.length < 10; j++) {
-                const pos1 = playerPositions.get(playerIds[i]);
-                const pos2 = playerPositions.get(playerIds[j]);
+                // 조정된 위치 우선 사용, 없으면 원래 위치 사용
+                const pos1 = adjustedPositionsMap.get(playerIds[i]) || playerPositions.get(playerIds[i]);
+                const pos2 = adjustedPositionsMap.get(playerIds[j]) || playerPositions.get(playerIds[j]);
                 
                 if (pos1 && pos2) {
                     const connection = createPassConnection(pos1.x, pos1.y, pos2.x, pos2.y, cluster.cohesion / 10);
