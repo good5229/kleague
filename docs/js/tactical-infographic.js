@@ -116,13 +116,13 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         // DocumentFragment로 배치 최적화
         const fieldFragment = document.createDocumentFragment();
         
-        // 같은 포지션의 선수들끼리 듀오인 경우 - 표준 포지션 배치에 맞춰 조정
+        // 같은 포지션의 선수들끼리 듀오인 경우 - 표준 포지션 배치에 맞춰 조정 (넓은 간격)
         if (samePosition && player1Pos && player2Pos) {
-            // 포지션별 표준 배치에 따라 간격 조정
+            // 포지션별 표준 배치에 따라 간격 조정 (간격 확대)
             if (player1.position === 'CB') {
-                // CB: 페널티 박스 중앙에 일정 간격을 두고 좌우 배치
-                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 6 }; // 위쪽 CB
-                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 6 }; // 아래쪽 CB
+                // CB: 페널티 박스 중앙에 넓은 간격을 두고 좌우 배치
+                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 10 }; // 위쪽 CB (간격 확대)
+                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 10 }; // 아래쪽 CB (간격 확대)
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -140,9 +140,9 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
                 }
                 fieldFragment.appendChild(connection.line);
             } else if (player1.position === 'CM' || player1.position === 'CDM' || player1.position === 'CAM') {
-                // 미드필더: 중앙 미드필드 영역에 배치
-                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 6 }; // 위쪽
-                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 6 }; // 아래쪽
+                // 미드필더: 중앙 미드필드 영역에 배치 (넓은 간격)
+                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 10 }; // 위쪽 (간격 확대)
+                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 10 }; // 아래쪽 (간격 확대)
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -183,9 +183,9 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
                 }
                 fieldFragment.appendChild(connection.line);
             } else {
-                // 기타 포지션: 상하로 배치
-                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 6 };
-                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 6 };
+                // 기타 포지션: 상하로 배치 (넓은 간격)
+                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - 10 }; // 간격 확대
+                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + 10 }; // 간격 확대
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -533,11 +533,12 @@ function findPlayerPosition(playerId, teamData) {
     // x축: 골대에서 골대까지 (0 = 왼쪽 골대, 100 = 오른쪽 골대)
     // y축: 위에서 아래까지 (0 = 위쪽, 68 = 아래쪽)
     // 페널티 박스: x=0-16.5, y=13.84-54.16
+    // 참고: Opta, StatsBomb, Wyscout 표준 - 골키퍼는 골대 앞 중앙, CB는 페널티 박스 중앙에 넓은 간격
     const positionMap = {
-        'GK': { x: 3, y: 34 },  // 골대 앞 중앙
-        // CB: 페널티 박스 중앙에 일정 간격을 두고 좌우 배치
-        'CB': { x: 12, y: 28 },  // 왼쪽 CB (페널티 박스 중앙, 위쪽)
-        'CB': { x: 12, y: 40 },  // 오른쪽 CB (페널티 박스 중앙, 아래쪽)
+        'GK': { x: 2, y: 34 },  // 골대 앞 중앙 (x: 2로 골대에 더 가깝게)
+        // CB: 페널티 박스 중앙에 넓은 간격을 두고 좌우 배치 (y: 22와 46으로 간격 확대)
+        'CB': { x: 12, y: 22 },  // 왼쪽 CB (페널티 박스 중앙, 위쪽 - 간격 확대)
+        'CB': { x: 12, y: 46 },  // 오른쪽 CB (페널티 박스 중앙, 아래쪽 - 간격 확대)
         'LB': { x: 12, y: 15 },  // 왼쪽 풀백 (페널티 박스 왼쪽 측면)
         'RB': { x: 12, y: 53 },  // 오른쪽 풀백 (페널티 박스 오른쪽 측면)
         'LWB': { x: 12, y: 15 }, // 왼쪽 윙백
@@ -562,33 +563,33 @@ function findPlayerPosition(playerId, teamData) {
         return { x: 50, y: 34 }; // 기본값: 중앙
     }
     
-    // CB의 경우, 같은 팀의 다른 CB와 구분하여 배치
+    // CB의 경우, 같은 팀의 다른 CB와 구분하여 배치 (넓은 간격)
     if (player.position === 'CB') {
         // 팀의 모든 CB 찾기
         const allCBs = teamData.players.filter(p => p.position === 'CB');
         const cbIndex = allCBs.findIndex(p => p.player_id === playerId);
         if (cbIndex === 0) {
-            return { x: 12, y: 28 }; // 첫 번째 CB: 위쪽
+            return { x: 12, y: 22 }; // 첫 번째 CB: 위쪽 (간격 확대)
         } else if (cbIndex === 1) {
-            return { x: 12, y: 40 }; // 두 번째 CB: 아래쪽
+            return { x: 12, y: 46 }; // 두 번째 CB: 아래쪽 (간격 확대)
         } else {
-            // 3명 이상인 경우 추가 배치
-            const spacing = 12 / (allCBs.length - 1);
-            return { x: 12, y: 28 + (cbIndex * spacing) };
+            // 3명 이상인 경우 추가 배치 (넓은 간격 유지)
+            const spacing = 24 / (allCBs.length - 1); // 간격 확대 (12 -> 24)
+            return { x: 12, y: 22 + (cbIndex * spacing) };
         }
     }
     
-    // CM의 경우도 마찬가지
+    // CM의 경우도 마찬가지 (넓은 간격)
     if (player.position === 'CM') {
         const allCMs = teamData.players.filter(p => p.position === 'CM');
         const cmIndex = allCMs.findIndex(p => p.player_id === playerId);
         if (cmIndex === 0) {
-            return { x: 42, y: 28 }; // 첫 번째 CM: 위쪽
+            return { x: 42, y: 22 }; // 첫 번째 CM: 위쪽 (간격 확대)
         } else if (cmIndex === 1) {
-            return { x: 42, y: 40 }; // 두 번째 CM: 아래쪽
+            return { x: 42, y: 46 }; // 두 번째 CM: 아래쪽 (간격 확대)
         } else {
-            const spacing = 12 / (allCMs.length - 1);
-            return { x: 42, y: 28 + (cmIndex * spacing) };
+            const spacing = 24 / (allCMs.length - 1); // 간격 확대 (12 -> 24)
+            return { x: 42, y: 22 + (cmIndex * spacing) };
         }
     }
     

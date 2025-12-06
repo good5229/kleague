@@ -1011,14 +1011,6 @@ document.getElementById('back-to-players-from-analysis').addEventListener('click
     document.getElementById('back-to-teams-from-best11-fixed').classList.add('hidden');
 });
 
-// 고정 뒤로가기 버튼 (팀 분석)
-const backToPlayersFromAnalysisFixed = document.getElementById('back-to-players-from-analysis-fixed');
-if (backToPlayersFromAnalysisFixed) {
-    backToPlayersFromAnalysisFixed.addEventListener('click', () => {
-        document.getElementById('back-to-players-from-analysis').click();
-    });
-}
-
 // 베스트 11 보기 버튼
 document.getElementById('view-best-11').addEventListener('click', () => {
     showBest11();
@@ -1035,18 +1027,63 @@ document.getElementById('back-to-teams-from-best11').addEventListener('click', (
     document.querySelectorAll('.fixed-back-button').forEach(btn => btn.classList.add('hidden'));
 });
 
-// 고정 뒤로가기 버튼 (베스트 11)
-const backToTeamsFromBest11Fixed = document.getElementById('back-to-teams-from-best11-fixed');
-if (backToTeamsFromBest11Fixed) {
-    backToTeamsFromBest11Fixed.addEventListener('click', () => {
-        document.getElementById('back-to-teams-from-best11').click();
-    });
-}
-
-// 페이지 로드 시 개선점 데이터도 로딩
+// 페이지 로드 시 개선점 데이터도 로딩 및 뒤로가기 버튼 초기화
 window.addEventListener('DOMContentLoaded', () => {
     loadData();
     loadTeamImprovements();
+    
+    // 고정 뒤로가기 버튼 이벤트 리스너 초기화 (DOM 로드 후)
+    const backToTeamsFixed = document.getElementById('back-to-teams-fixed');
+    if (backToTeamsFixed) {
+        backToTeamsFixed.addEventListener('click', () => {
+            const backToTeams = document.getElementById('back-to-teams');
+            if (backToTeams) {
+                backToTeams.click();
+            } else {
+                console.error('back-to-teams 버튼을 찾을 수 없습니다.');
+            }
+        });
+    } else {
+        console.error('back-to-teams-fixed 버튼을 찾을 수 없습니다.');
+    }
+    
+    const backToPlayersFixed = document.getElementById('back-to-players-fixed');
+    if (backToPlayersFixed) {
+        backToPlayersFixed.addEventListener('click', () => {
+            const backToPlayers = document.getElementById('back-to-players');
+            if (backToPlayers) {
+                backToPlayers.click();
+            } else {
+                console.error('back-to-players 버튼을 찾을 수 없습니다.');
+            }
+        });
+    } else {
+        console.error('back-to-players-fixed 버튼을 찾을 수 없습니다.');
+    }
+    
+    const backToPlayersFromAnalysisFixed = document.getElementById('back-to-players-from-analysis-fixed');
+    if (backToPlayersFromAnalysisFixed) {
+        backToPlayersFromAnalysisFixed.addEventListener('click', () => {
+            const backToPlayersFromAnalysis = document.getElementById('back-to-players-from-analysis');
+            if (backToPlayersFromAnalysis) {
+                backToPlayersFromAnalysis.click();
+            } else {
+                console.error('back-to-players-from-analysis 버튼을 찾을 수 없습니다.');
+            }
+        });
+    }
+    
+    const backToTeamsFromBest11Fixed = document.getElementById('back-to-teams-from-best11-fixed');
+    if (backToTeamsFromBest11Fixed) {
+        backToTeamsFromBest11Fixed.addEventListener('click', () => {
+            const backToTeamsFromBest11 = document.getElementById('back-to-teams-from-best11');
+            if (backToTeamsFromBest11) {
+                backToTeamsFromBest11.click();
+            } else {
+                console.error('back-to-teams-from-best11 버튼을 찾을 수 없습니다.');
+            }
+        });
+    }
 });
 
 // 구현 과정 툴팁 함수
