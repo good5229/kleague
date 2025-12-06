@@ -654,9 +654,10 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
             if (player || playerNames[playerIdx]) {
                 const pos = findPlayerPosition(playerId, teamData);
                 if (pos) {
-                    // 좌표를 반올림하여 근접한 위치를 같은 그룹으로 처리 (0.5 단위)
-                    const roundedX = Math.round(pos.x * 2) / 2;
-                    const roundedY = Math.round(pos.y * 2) / 2;
+                    // 좌표를 반올림하여 근접한 위치를 같은 그룹으로 처리
+                    // 같은 포지션의 선수들은 널찍한 간격을 두고 배치 (1.0 단위로 더 넓게)
+                    const roundedX = Math.round(pos.x);
+                    const roundedY = Math.round(pos.y);
                     const locationKey = `${roundedX}-${roundedY}`;
                     
                     playerPositions.set(playerId, pos);
@@ -680,10 +681,10 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
         if (playerNames && playerNames.length > cluster.players.length) {
             playerNames.forEach((playerName, nameIdx) => {
                 if (nameIdx >= cluster.players.length) {
-                    // 새로운 선수 위치 찾기 (기본 위치 사용)
+                    // 새로운 선수 위치 찾기 (기본 위치 사용, 널찍한 간격)
                     const defaultPos = { x: 50 + (nameIdx % 3) * 10, y: 20 + Math.floor(nameIdx / 3) * 15 };
-                    const roundedX = Math.round(defaultPos.x * 2) / 2;
-                    const roundedY = Math.round(defaultPos.y * 2) / 2;
+                    const roundedX = Math.round(defaultPos.x);
+                    const roundedY = Math.round(defaultPos.y);
                     const locationKey = `${roundedX}-${roundedY}`;
                     
                     if (!playersByLocation.has(locationKey)) {
