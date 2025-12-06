@@ -51,6 +51,15 @@
                     <button id="back-to-teams" class="btn btn-secondary">← 팀 목록으로 돌아가기</button>
                     <button id="view-team-analysis" class="btn btn-info">팀 분석 보기</button>
                 </div>
+                <div class="sort-controls">
+                    <label for="sort-select">정렬 기준: </label>
+                    <select id="sort-select" onchange="changeSortOrder(this.value)">
+                        <option value="fit_score">롤 적합도 점수</option>
+                        <option value="war">WAR (승리 기여도)</option>
+                        <option value="game_count">경기 수</option>
+                        <option value="team_win_rate">팀 승률</option>
+                    </select>
+                </div>
                 <div class="player-grid" id="player-grid">
                     <!-- 선수 카드들이 여기에 동적으로 추가됩니다 -->
                 </div>

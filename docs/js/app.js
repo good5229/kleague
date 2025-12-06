@@ -82,15 +82,51 @@ function selectTeam(teamName) {
     renderPlayers();
 }
 
+// 정렬 기준 (전역 변수)
+let currentSortOrder = 'fit_score';
+
+// 정렬 기준 변경
+window.changeSortOrder = function(sortBy) {
+    currentSortOrder = sortBy;
+    renderPlayers();
+};
+
 // 선수 목록 렌더링
 function renderPlayers() {
     const playerGrid = document.getElementById('player-grid');
     const players = currentTeam.players;
     
-    // 적합도 점수 순으로 정렬
-    const sortedPlayers = [...players].sort((a, b) => b.fit_score - a.fit_score);
+    // 정렬 기준에 따라 정렬
+    let sortedPlayers = [...players];
+    switch(currentSortOrder) {
+        case 'war':
+            sortedPlayers.sort((a, b) => {
+                const warA = a.war || 0;
+                const warB = b.war || 0;
+                return warB - warA; // 내림차순
+            });
+            break;
+        case 'game_count':
+            sortedPlayers.sort((a, b) => b.game_count - a.game_count);
+            break;
+        case 'team_win_rate':
+            sortedPlayers.sort((a, b) => {
+                const rateA = a.team_win_rate || 0;
+                const rateB = b.team_win_rate || 0;
+                return rateB - rateA;
+            });
+            break;
+        case 'fit_score':
+        default:
+            sortedPlayers.sort((a, b) => b.fit_score - a.fit_score);
+            break;
+    }
     
-    playerGrid.innerHTML = sortedPlayers.map(player => `
+    playerGrid.innerHTML = sortedPlayers.map(player => {
+        const war = player.war || 0;
+        const warDisplay = war !== 0 ? `${war > 0 ? '+' : ''}${(war * 100).toFixed(1)}%p` : 'N/A';
+        
+        return `
         <div class="player-card" onclick="selectPlayer(${player.player_id})">
             <h3>${player.player_name}</h3>
             <div>
@@ -102,8 +138,15 @@ function renderPlayers() {
                 <span>${player.game_count}경기</span>
                 <span>${player.event_count.toLocaleString()}이벤트</span>
             </div>
+            ${war !== 0 ? `<div class="war-stat">WAR: ${warDisplay}</div>` : ''}
         </div>
-    `).join('');
+    `}).join('');
+    
+    // 정렬 기준에 맞게 셀렉트박스 업데이트
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+        sortSelect.value = currentSortOrder;
+    }
 }
 
 // 팀 색상 테마 적용
