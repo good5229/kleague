@@ -700,7 +700,8 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
         const playerNames = cluster.player_names || [];
         
         // 각 선수를 표준 포지션에 맞게 개별 배치 (레퍼런스 위치에 맞게)
-        const playersByLocation = new Map(); // "x-y" -> { pos: {x, y}, players: [{id, name}] }
+        // 각 선수를 findPlayerPosition으로 표준 위치에 배치하고, 같은 위치에 여러 선수가 있으면 약간씩 오프셋
+        const playersToRender = []; // { id, name, pos: {x, y} }
         
         // cluster.players 배열과 player_names 배열을 매칭
         cluster.players.forEach((playerId, playerIdx) => {
@@ -710,23 +711,29 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
             if (player || playerNames[playerIdx]) {
                 const pos = findPlayerPosition(playerId, teamData);
                 if (pos) {
-                    // 각 선수를 표준 포지션에 맞게 개별 배치 (그룹화하지 않고 각각 배치)
-                    // 같은 포지션의 선수들은 findPlayerPosition에서 이미 적절히 분산 배치됨
                     playerPositions.set(playerId, pos);
-                    
-                    // 각 선수를 개별 위치에 배치 (같은 위치에 여러 선수가 있어도 각각 표시)
-                    const locationKey = `${pos.x}-${pos.y}`;
-                    if (!playersByLocation.has(locationKey)) {
-                        playersByLocation.set(locationKey, {
-                            pos: { x: pos.x, y: pos.y },
-                            players: []
-                        });
-                    }
-                    playersByLocation.get(locationKey).players.push({
+                    playersToRender.push({
                         id: playerId,
-                        name: playerName
+                        name: playerName,
+                        pos: { x: pos.x, y: pos.y }
                     });
                 }
+            }
+        });
+        
+        // 같은 위치의 선수들을 약간씩 오프셋하여 배치 (겹침 방지)
+        const locationCount = new Map(); // "x-y" -> count
+        playersToRender.forEach(p => {
+            const key = `${Math.round(p.pos.x)}-${Math.round(p.pos.y)}`;
+            const count = locationCount.get(key) || 0;
+            locationCount.set(key, count + 1);
+            
+            // 같은 위치에 여러 선수가 있으면 약간씩 오프셋 (최대 0.5 단위)
+            if (count > 0) {
+                const offsetX = (count % 2 === 0 ? 1 : -1) * (count * 0.3);
+                const offsetY = (count % 2 === 1 ? 1 : -1) * (count * 0.3);
+                p.pos.x += offsetX;
+                p.pos.y += offsetY;
             }
         });
         
@@ -754,33 +761,11 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
             });
         }
         
-        // 그룹화된 선수들을 마커로 생성 (원래 위치 유지, 텍스트 줄바꿈 처리)
-        playersByLocation.forEach((group, locationKey) => {
-            let text, hue, color;
-            if (group.players.length === 1) {
-                // 단일 선수
-                const player = group.players[0];
-                text = player.name;
-                hue = (player.id || 0) % 360;
-            } else {
-                // 같은 위치의 여러 선수 - 콤마로 구분 (줄바꿈 처리)
-                const names = group.players.map(p => p.name);
-                // 긴 텍스트는 줄바꿈 (예: 3명 이상이거나 총 길이가 15자 이상)
-                if (names.length > 2 || names.join(', ').length > 15) {
-                    // 2명씩 줄바꿈
-                    const lines = [];
-                    for (let i = 0; i < names.length; i += 2) {
-                        lines.push(names.slice(i, i + 2).join(', '));
-                    }
-                    text = lines.join('\n');
-                } else {
-                    text = names.join(', ');
-                }
-                hue = (group.players[0].id || 0) % 360;
-            }
-            color = `hsl(${hue}, 70%, 50%)`;
-            
-            const marker = createPlayerMarker(text, group.pos.x, group.pos.y, color);
+        // 각 선수를 개별 마커로 생성 (표준 포지션에 맞게 배치)
+        playersToRender.forEach(player => {
+            const hue = (player.id || 0) % 360;
+            const color = `hsl(${hue}, 70%, 50%)`;
+            const marker = createPlayerMarker(player.name, player.pos.x, player.pos.y, color);
             fieldFragment.appendChild(marker);
         });
         
