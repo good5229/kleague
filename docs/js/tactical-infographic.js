@@ -120,13 +120,14 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         if (samePosition && player1Pos && player2Pos) {
             // 포지션별 표준 배치에 따라 간격 조정 (간격 확대)
             if (player1.position === 'CB') {
-                // CB: 표준 축구 전술 다이어그램 기준 - 페널티 박스 안에서 골 에어리어 근처에 좌우로 적절한 간격 배치
-                const baseX = 8.5; // 골 에어리어 모서리(5.5)보다 약간 앞, 페널티 박스 안 적절한 위치 (표준 범위 7-11 내)
+                // CB: 골 에어리어 모서리(x=5.5)보다 약간 앞, x축 좌우로 널찍하게 배치
+                const goalAreaEdge = 5.5; // 골 에어리어 모서리
+                const offset = 0.5; // 골 에어리어 모서리보다 약간 앞 (약 1cm)
+                const baseX = goalAreaEdge + offset; // x = 6
                 const centerY = 34; // 필드 중앙
-                const ySpacing = 6; // CB 간 y축 간격 (위아래로 적절한 간격)
-                const xSpacing = 1.5; // CB 간 x축 간격 (좌우로 적절한 간격)
-                const adjustedPos1 = { x: baseX - xSpacing, y: centerY - ySpacing }; // 왼쪽 위 CB (x: 7, y: 28)
-                const adjustedPos2 = { x: baseX + xSpacing, y: centerY + ySpacing }; // 오른쪽 아래 CB (x: 10, y: 40)
+                const xSpacing = 4; // CB 간 x축 좌우 간격 (널찍하게 배치)
+                const adjustedPos1 = { x: baseX - xSpacing, y: centerY }; // 왼쪽 CB (x: 2, y: 34)
+                const adjustedPos2 = { x: baseX + xSpacing, y: centerY }; // 오른쪽 CB (x: 10, y: 34)
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -542,9 +543,9 @@ function findPlayerPosition(playerId, teamData) {
     // 참고: Opta, StatsBomb, Wyscout 표준 - 골키퍼는 골대 앞 중앙, CB는 페널티 박스 중앙에 넓은 간격
     const positionMap = {
         'GK': { x: 2, y: 34 },  // 골대 앞 중앙 (x: 2로 골대에 더 가깝게)
-        // CB: 표준 축구 전술 다이어그램 기준 - 페널티 박스 안에서 골 에어리어 근처에 좌우로 적절한 간격 배치
-        'CB': { x: 7, y: 28 },  // 왼쪽 위 CB (골 에어리어 모서리 5.5보다 약간 앞, 페널티 박스 중앙 기준 위쪽, 표준 범위 7-11 내)
-        'CB': { x: 10, y: 40 },  // 오른쪽 아래 CB (골 에어리어 모서리 5.5보다 약간 앞, 페널티 박스 중앙 기준 아래쪽, 표준 범위 7-11 내)
+        // CB: 골 에어리어 모서리(x=5.5)보다 약간 앞, x축 좌우로 널찍하게 배치
+        'CB': { x: 2, y: 34 },  // 왼쪽 CB (골 에어리어 모서리 5.5보다 약간 앞, x축 좌우로 널찍하게)
+        'CB': { x: 10, y: 34 },  // 오른쪽 CB (골 에어리어 모서리 5.5보다 약간 앞, x축 좌우로 널찍하게)
         'LB': { x: 12, y: 15 },  // 왼쪽 풀백 (페널티 박스 왼쪽 측면)
         'RB': { x: 12, y: 53 },  // 오른쪽 풀백 (페널티 박스 오른쪽 측면)
         'LWB': { x: 12, y: 15 }, // 왼쪽 윙백
@@ -578,25 +579,23 @@ function findPlayerPosition(playerId, teamData) {
         const cbIndex = allCBs.findIndex(p => p.player_id === playerId);
         // 페널티 박스: x=0-16.5, y=13.84-54.16
         // 골 에어리어: x=0-5.5, y=24.66-43.34
-        // 표준 배치: 골 에어리어 모서리(x=5.5)보다 약간 앞, 페널티 박스 중앙(y=34) 기준 좌우 배치
-        const baseX = 8.5; // 골 에어리어 모서리(5.5)보다 약간 앞, 페널티 박스 안 적절한 위치 (표준 범위 7-11 내)
+        // 사용자 요구사항: 골 에어리어 모서리(x=5.5)보다 약간 앞, x축 좌우로 널찍하게 배치
+        const goalAreaEdge = 5.5; // 골 에어리어 모서리
+        const offset = 0.5; // 골 에어리어 모서리보다 약간 앞 (약 1cm)
+        const baseX = goalAreaEdge + offset; // x = 6 (골 에어리어 모서리보다 약간 앞)
         const centerY = 34; // 필드 중앙
-        const ySpacing = 6; // CB 간 y축 간격 (위아래로 적절한 간격)
-        const xSpacing = 1.5; // CB 간 x축 간격 (좌우로 적절한 간격)
+        const xSpacing = 4; // CB 간 x축 좌우 간격 (널찍하게 배치)
         
         if (cbIndex === 0) {
-            return { x: baseX - xSpacing, y: centerY - ySpacing }; // 왼쪽 위 CB (x: 7, y: 28)
+            return { x: baseX - xSpacing, y: centerY }; // 왼쪽 CB (x: 2, y: 34)
         } else if (cbIndex === 1) {
-            return { x: baseX + xSpacing, y: centerY + ySpacing }; // 오른쪽 아래 CB (x: 10, y: 40)
+            return { x: baseX + xSpacing, y: centerY }; // 오른쪽 CB (x: 10, y: 34)
         } else {
-            // 3명 이상인 경우 추가 배치
+            // 3명 이상인 경우 추가 배치 (x축 좌우로 널찍하게)
             const startX = baseX - xSpacing;
-            const startY = centerY - ySpacing;
             const totalXSpacing = xSpacing * 2;
-            const totalYSpacing = ySpacing * 2;
             const xStep = totalXSpacing / (allCBs.length - 1);
-            const yStep = totalYSpacing / (allCBs.length - 1);
-            return { x: startX + (cbIndex * xStep), y: startY + (cbIndex * yStep) };
+            return { x: startX + (cbIndex * xStep), y: centerY };
         }
     }
     
