@@ -2,11 +2,15 @@
 // 참고: Opta, StatsBomb, Wyscout 스타일
 
 // 축구 필드 SVG 생성 (4-3-3 포메이션 기준)
-function createFootballFieldSVG(width = 600, height = 400) {
+// scaleFactor: 필드 크기 확대 비율 (기본 1.0, 확대 시 2.0 등)
+function createFootballFieldSVG(width = 600, height = 400, scaleFactor = 1.0) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', width);
     svg.setAttribute('height', height);
-    svg.setAttribute('viewBox', '0 0 100 68');
+    // viewBox를 scaleFactor에 맞춰 확대 (폰트 크기 유지를 위해)
+    const viewBoxWidth = 100 * scaleFactor;
+    const viewBoxHeight = 68 * scaleFactor;
+    svg.setAttribute('viewBox', `0 0 ${viewBoxWidth} ${viewBoxHeight}`);
     svg.style.background = '#2d5016';
     svg.style.borderRadius = '8px';
     
