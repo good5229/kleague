@@ -120,8 +120,8 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         if (samePosition && player1Pos && player2Pos) {
             // 포지션별 표준 배치에 따라 간격 조정 (간격 확대)
             if (player1.position === 'CB') {
-                // CB: 페널티 박스 중앙에 적절한 간격을 두고 좌우 배치
-                const spacing = 8; // CB 간 적절한 간격
+                // CB: 페널티 박스 중앙에 널찍한 간격을 두고 좌우 배치
+                const spacing = 12; // CB 간 널찍한 간격 (겹침 방지)
                 const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - spacing }; // 위쪽 CB
                 const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + spacing }; // 아래쪽 CB
                 
@@ -141,8 +141,8 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
                 }
                 fieldFragment.appendChild(connection.line);
             } else if (player1.position === 'CM' || player1.position === 'CDM' || player1.position === 'CAM') {
-                // 미드필더: 중앙 미드필드 영역에 배치 (적절한 간격)
-                const spacing = 10; // 미드필더 간 적절한 간격
+                // 미드필더: 중앙 미드필드 영역에 배치 (널찍한 간격)
+                const spacing = 14; // 미드필더 간 널찍한 간격 (겹침 방지)
                 const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - spacing }; // 위쪽
                 const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + spacing }; // 아래쪽
                 
@@ -185,8 +185,8 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
                 }
                 fieldFragment.appendChild(connection.line);
             } else {
-                // 기타 포지션: 상하로 배치 (적절한 간격)
-                const spacing = 8; // 기본 간격
+                // 기타 포지션: 상하로 배치 (널찍한 간격)
+                const spacing = 12; // 기본 널찍한 간격 (겹침 방지)
                 const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - spacing };
                 const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + spacing };
                 
@@ -546,10 +546,10 @@ function findPlayerPosition(playerId, teamData) {
         'RB': { x: 12, y: 53 },  // 오른쪽 풀백 (페널티 박스 오른쪽 측면)
         'LWB': { x: 12, y: 15 }, // 왼쪽 윙백
         'RWB': { x: 12, y: 53 }, // 오른쪽 윙백
-        // 미드필더: 중앙 미드필드 영역에 배치 (x: 35-50)
+        // 미드필더: 중앙 미드필드 영역에 배치 (x: 35-50, 널찍한 간격)
         'CDM': { x: 30, y: 34 }, // 수비형 미드필더 (페널티 박스 앞 중앙)
-        'CM': { x: 42, y: 28 },  // 왼쪽 중앙 미드필더 (중앙 미드필드, 위쪽)
-        'CM': { x: 42, y: 40 },  // 오른쪽 중앙 미드필더 (중앙 미드필드, 아래쪽)
+        'CM': { x: 42, y: 22 },  // 왼쪽 중앙 미드필더 (중앙 미드필드, 위쪽, 널찍한 간격)
+        'CM': { x: 42, y: 46 },  // 오른쪽 중앙 미드필더 (중앙 미드필드, 아래쪽, 널찍한 간격)
         'CAM': { x: 50, y: 34 }, // 공격형 미드필더 (중앙 미드필드 앞쪽)
         'LM': { x: 42, y: 15 },  // 왼쪽 미드필더 (측면 미드필드)
         'RM': { x: 42, y: 53 },  // 오른쪽 미드필더 (측면 미드필드)
@@ -566,40 +566,40 @@ function findPlayerPosition(playerId, teamData) {
         return { x: 50, y: 34 }; // 기본값: 중앙
     }
     
-    // CB의 경우, 같은 팀의 다른 CB와 구분하여 배치 (적절한 간격)
+    // CB의 경우, 같은 팀의 다른 CB와 구분하여 배치 (널찍한 간격)
     if (player.position === 'CB') {
         // 팀의 모든 CB 찾기
         const allCBs = teamData.players.filter(p => p.position === 'CB');
         const cbIndex = allCBs.findIndex(p => p.player_id === playerId);
         const centerY = 34; // 필드 중앙
-        const spacing = 6; // CB 간 적절한 간격 (너무 넓지 않게)
+        const spacing = 10; // CB 간 널찍한 간격 (페널티 박스 중앙에 배치되되 넓게)
         
         if (cbIndex === 0) {
-            return { x: 12, y: centerY - spacing }; // 첫 번째 CB: 중앙 기준 위쪽
+            return { x: 12, y: centerY - spacing }; // 첫 번째 CB: 중앙 기준 위쪽 (y: 24)
         } else if (cbIndex === 1) {
-            return { x: 12, y: centerY + spacing }; // 두 번째 CB: 중앙 기준 아래쪽
+            return { x: 12, y: centerY + spacing }; // 두 번째 CB: 중앙 기준 아래쪽 (y: 44)
         } else {
-            // 3명 이상인 경우 추가 배치 (적절한 간격 유지)
-            const totalSpacing = spacing * 2; // 위아래 총 간격
+            // 3명 이상인 경우 추가 배치 (널찍한 간격 유지)
+            const totalSpacing = spacing * 2; // 위아래 총 간격 (20 단위)
             const startY = centerY - spacing;
             const step = totalSpacing / (allCBs.length - 1);
             return { x: 12, y: startY + (cbIndex * step) };
         }
     }
     
-    // CM의 경우도 마찬가지 (적절한 간격)
+    // CM의 경우도 마찬가지 (널찍한 간격)
     if (player.position === 'CM') {
         const allCMs = teamData.players.filter(p => p.position === 'CM');
         const cmIndex = allCMs.findIndex(p => p.player_id === playerId);
         const centerY = 34; // 필드 중앙
-        const spacing = 8; // CM 간 적절한 간격 (CB보다 약간 넓게)
+        const spacing = 12; // CM 간 널찍한 간격 (미드필드 영역 활용)
         
         if (cmIndex === 0) {
-            return { x: 42, y: centerY - spacing }; // 첫 번째 CM: 중앙 기준 위쪽
+            return { x: 42, y: centerY - spacing }; // 첫 번째 CM: 중앙 기준 위쪽 (y: 22)
         } else if (cmIndex === 1) {
-            return { x: 42, y: centerY + spacing }; // 두 번째 CM: 중앙 기준 아래쪽
+            return { x: 42, y: centerY + spacing }; // 두 번째 CM: 중앙 기준 아래쪽 (y: 46)
         } else {
-            const totalSpacing = spacing * 2;
+            const totalSpacing = spacing * 2; // 위아래 총 간격 (24 단위)
             const startY = centerY - spacing;
             const step = totalSpacing / (allCMs.length - 1);
             return { x: 42, y: startY + (cmIndex * step) };
