@@ -120,17 +120,14 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         if (samePosition && player1Pos && player2Pos) {
             // 포지션별 표준 배치에 따라 간격 조정 (간격 확대)
             if (player1.position === 'CB') {
-                // CB: 레퍼런스 이미지 기준 - 페널티 박스 위쪽 라인 근처에 좌우로 넓게 분산 배치
-                const penaltyBoxTop = 13.84; // 페널티 박스 위쪽 라인
-                const penaltyBoxXMax = 16.5; // 페널티 박스 x축 끝
-                const goalAreaEdge = 5.5; // 골 에어리어 모서리
-                const offset = 0.5; // 골 에어리어 모서리보다 약간 앞
-                const yOffset = 1; // 페널티 박스 위쪽 라인에서 약간 아래
-                // 레퍼런스 이미지: CB들이 페널티 박스 양 끝에 가깝게 배치
-                const cb1X = goalAreaEdge + offset; // 왼쪽 CB: 골 에어리어 모서리보다 약간 앞 (x: 6)
-                const cb2X = penaltyBoxXMax - 1; // 오른쪽 CB: 페널티 박스 끝에 가깝게 (x: 15.5)
-                const adjustedPos1 = { x: cb1X, y: penaltyBoxTop + yOffset }; // 왼쪽 CB (x: 6, y: 14.84)
-                const adjustedPos2 = { x: cb2X, y: penaltyBoxTop + yOffset }; // 오른쪽 CB (x: 15.5, y: 14.84)
+                // CB: 레퍼런스 이미지 기준 - "top of the penalty box" = x축으로 페널티 박스의 앞쪽 끝
+                // CB는 페널티 박스의 앞쪽 끝(x=16.5 근처)에 배치되고, y축으로 좌우 넓게 분산
+                const penaltyBoxXMax = 16.5; // 페널티 박스 x축 끝 (골대에서 멀어지는 방향)
+                const centerY = 34; // 필드 중앙
+                const xOffset = 0.5; // 페널티 박스 앞쪽 끝에서 약간 뒤
+                const ySpacing = 8; // CB 간 y축 좌우 간격 (페널티 박스 폭을 넓게 활용)
+                const adjustedPos1 = { x: penaltyBoxXMax - xOffset, y: centerY - ySpacing }; // 왼쪽 CB (x: 16, y: 26)
+                const adjustedPos2 = { x: penaltyBoxXMax - xOffset, y: centerY + ySpacing }; // 오른쪽 CB (x: 16, y: 42)
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -546,9 +543,10 @@ function findPlayerPosition(playerId, teamData) {
     // 참고: Opta, StatsBomb, Wyscout 표준 - 골키퍼는 골대 앞 중앙, CB는 페널티 박스 중앙에 넓은 간격
     const positionMap = {
         'GK': { x: 2, y: 34 },  // 골대 앞 중앙 (x: 2로 골대에 더 가깝게)
-        // CB: 레퍼런스 이미지 기준 - 페널티 박스 위쪽 라인 근처에 좌우로 넓게 분산 배치
-        'CB': { x: 6, y: 14.84 },  // 왼쪽 CB (골 에어리어 모서리보다 약간 앞, 페널티 박스 위쪽 라인 근처)
-        'CB': { x: 15.5, y: 14.84 },  // 오른쪽 CB (페널티 박스 끝에 가깝게, 페널티 박스 위쪽 라인 근처)
+        // CB: 레퍼런스 이미지 기준 - "top of the penalty box" = x축으로 페널티 박스의 앞쪽 끝
+        // CB는 페널티 박스의 앞쪽 끝(x=16.5 근처)에 배치되고, y축으로 좌우 넓게 분산
+        'CB': { x: 16, y: 26 },  // 왼쪽 CB (페널티 박스 앞쪽 끝 근처, y축으로 좌우 넓게)
+        'CB': { x: 16, y: 42 },  // 오른쪽 CB (페널티 박스 앞쪽 끝 근처, y축으로 좌우 넓게)
         'LB': { x: 12, y: 15 },  // 왼쪽 풀백 (페널티 박스 왼쪽 측면)
         'RB': { x: 12, y: 53 },  // 오른쪽 풀백 (페널티 박스 오른쪽 측면)
         'LWB': { x: 12, y: 15 }, // 왼쪽 윙백
@@ -582,29 +580,29 @@ function findPlayerPosition(playerId, teamData) {
         const cbIndex = allCBs.findIndex(p => p.player_id === playerId);
         // 페널티 박스: x=0-16.5, y=13.84-54.16
         // 골 에어리어: x=0-5.5, y=24.66-43.34
-        // 레퍼런스 이미지 기준: CB는 페널티 박스 위쪽 라인 근처에 좌우로 넓게 분산 배치
-        // 페널티 박스 위쪽 라인: y=13.84
-        // 페널티 박스의 거의 전체 폭을 활용하여 좌우로 넓게 배치
-        const penaltyBoxTop = 13.84; // 페널티 박스 위쪽 라인
-        const penaltyBoxXMax = 16.5; // 페널티 박스 x축 끝
-        const goalAreaEdge = 5.5; // 골 에어리어 모서리
-        const offset = 0.5; // 골 에어리어 모서리보다 약간 앞
-        const yOffset = 1; // 페널티 박스 위쪽 라인에서 약간 아래
-        // 레퍼런스 이미지: CB들이 페널티 박스 양 끝에 가깝게 배치
-        const cb1X = goalAreaEdge + offset; // 왼쪽 CB: 골 에어리어 모서리보다 약간 앞 (x: 6)
-        const cb2X = penaltyBoxXMax - 1; // 오른쪽 CB: 페널티 박스 끝에 가깝게 (x: 15.5)
+        // 레퍼런스 이미지 기준: "top of the penalty box" = x축으로 페널티 박스의 앞쪽 끝 (골대에서 멀어지는 방향)
+        // CB는 페널티 박스의 앞쪽 끝(x=16.5 근처)에 배치되고, y축으로 좌우 넓게 분산
+        const penaltyBoxXMax = 16.5; // 페널티 박스 x축 끝 (골대에서 멀어지는 방향)
+        const penaltyBoxYMin = 13.84; // 페널티 박스 y축 시작
+        const penaltyBoxYMax = 54.16; // 페널티 박스 y축 끝
+        const centerY = 34; // 필드 중앙
+        const xOffset = 0.5; // 페널티 박스 앞쪽 끝에서 약간 뒤
+        const ySpacing = 8; // CB 간 y축 좌우 간격 (페널티 박스 폭을 넓게 활용)
         
         if (cbIndex === 0) {
-            return { x: cb1X, y: penaltyBoxTop + yOffset }; // 왼쪽 CB (x: 6, y: 14.84)
+            return { x: penaltyBoxXMax - xOffset, y: centerY - ySpacing }; // 왼쪽 CB (x: 16, y: 26)
         } else if (cbIndex === 1) {
-            return { x: cb2X, y: penaltyBoxTop + yOffset }; // 오른쪽 CB (x: 15.5, y: 14.84)
+            return { x: penaltyBoxXMax - xOffset, y: centerY + ySpacing }; // 오른쪽 CB (x: 16, y: 42)
         } else {
-            // 3명 이상인 경우 추가 배치 (x축 좌우로 넓게 분산, 페널티 박스 위쪽 라인 근처)
-            const cb1X = goalAreaEdge + offset; // 왼쪽 끝
-            const cb2X = penaltyBoxXMax - 1; // 오른쪽 끝
-            const totalXSpacing = cb2X - cb1X;
-            const xStep = totalXSpacing / (allCBs.length - 1);
-            return { x: cb1X + (cbIndex * xStep), y: penaltyBoxTop + yOffset };
+            // 3명 이상인 경우 추가 배치 (페널티 박스 앞쪽 끝 근처, y축으로 좌우 넓게 분산)
+            const penaltyBoxXMax = 16.5;
+            const centerY = 34;
+            const xOffset = 0.5;
+            const ySpacing = 8;
+            const totalYSpacing = ySpacing * 2;
+            const startY = centerY - ySpacing;
+            const yStep = totalYSpacing / (allCBs.length - 1);
+            return { x: penaltyBoxXMax - xOffset, y: startY + (cbIndex * yStep) };
         }
     }
     
