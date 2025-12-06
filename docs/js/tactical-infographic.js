@@ -120,15 +120,14 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         if (samePosition && player1Pos && player2Pos) {
             // 포지션별 표준 배치에 따라 간격 조정 (간격 확대)
             if (player1.position === 'CB') {
-                // CB: 레퍼런스 이미지 기준 - 골대 중앙(y=34) 근처에 배치, y축으로 좌우 넓게 분산
-                // 골대가 중앙에 있으므로 CB는 골대를 중심으로 배치되어야 함
+                // CB: 골대 중앙(y=34)을 중심으로 배치, 둘 다 아래로 내려와야 함 (특히 두 번째 CB는 더 많이)
+                // 골대가 정 가운데에 있으므로 CB는 골대를 제대로 커버할 수 있는 위치에 배치
                 const penaltyBoxXMax = 16.5; // 페널티 박스 x축 끝 (골대에서 멀어지는 방향)
                 const centerY = 34; // 필드 중앙 (골대 중앙)
                 const xOffset = 0.5; // 페널티 박스 앞쪽 끝에서 약간 뒤
-                const ySpacing = 4; // CB 간 y축 좌우 간격 (골대 중앙 근처에 배치)
-                // 첫 번째 CB는 약간 위, 두 번째 CB는 약간 아래 (골대 중앙 기준)
-                const adjustedPos1 = { x: penaltyBoxXMax - xOffset, y: centerY - ySpacing }; // 왼쪽 CB (x: 16, y: 30)
-                const adjustedPos2 = { x: penaltyBoxXMax - xOffset, y: centerY + ySpacing + 2 }; // 오른쪽 CB (x: 16, y: 38) - 더 아래로
+                // 첫 번째 CB는 골대 중앙 근처, 두 번째 CB는 더 아래로
+                const adjustedPos1 = { x: penaltyBoxXMax - xOffset, y: centerY - 2 }; // 첫 번째 CB (x: 16, y: 32) - 골대 중앙 근처
+                const adjustedPos2 = { x: penaltyBoxXMax - xOffset, y: centerY + 4 }; // 두 번째 CB (x: 16, y: 38) - 더 아래로
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -217,34 +216,32 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
             let adjustedPos2 = player2Pos ? { ...player2Pos } : null;
             
             if (player1 && player2 && adjustedPos1 && adjustedPos2) {
-                // CB + LB: LB가 x축으로 더 우측으로 이동
+                // CB + LB: LB가 x축으로 더 우측으로 이동 (조금만 더)
                 if ((player1.position === 'CB' && player2.position === 'LB') || 
                     (player1.position === 'LB' && player2.position === 'CB')) {
-                    const cbPos = player1.position === 'CB' ? adjustedPos1 : adjustedPos2;
-                    const lbPos = player1.position === 'LB' ? adjustedPos1 : adjustedPos2;
-                    // LB를 x축으로 더 우측으로 이동 (약 3-4 단위)
+                    // LB를 x축으로 더 우측으로 이동 (기본 위치에서 추가 이동)
                     if (player1.position === 'LB') {
-                        adjustedPos1.x += 3.5;
+                        adjustedPos1.x += 5; // 조금만 더 우측으로
                     } else {
-                        adjustedPos2.x += 3.5;
+                        adjustedPos2.x += 5; // 조금만 더 우측으로
                     }
                 }
                 // CB + CM: CM이 x축으로 더 우측으로 이동, CB도 조금 이동. CM이 CB보다 2배 더 이동
                 else if ((player1.position === 'CB' && (player2.position === 'CM' || player2.position === 'CDM')) ||
                          (player2.position === 'CB' && (player1.position === 'CM' || player1.position === 'CDM'))) {
-                    const cbPos = player1.position === 'CB' ? adjustedPos1 : adjustedPos2;
-                    const cmPos = (player1.position === 'CM' || player1.position === 'CDM') ? adjustedPos1 : adjustedPos2;
-                    // CB를 x축으로 약간 이동 (1-2 단위)
+                    // CB를 x축으로 약간 이동
+                    const cbMove = 2; // CB 이동량
                     if (player1.position === 'CB') {
-                        adjustedPos1.x += 1.5;
+                        adjustedPos1.x += cbMove;
                     } else {
-                        adjustedPos2.x += 1.5;
+                        adjustedPos2.x += cbMove;
                     }
-                    // CM을 x축으로 더 많이 이동 (CB의 2배, 약 3-4 단위)
+                    // CM을 x축으로 더 많이 이동 (CB의 2배)
+                    const cmMove = cbMove * 2; // CM 이동량 (CB의 2배)
                     if (player1.position === 'CM' || player1.position === 'CDM') {
-                        adjustedPos1.x += 3;
+                        adjustedPos1.x += cmMove;
                     } else {
-                        adjustedPos2.x += 3;
+                        adjustedPos2.x += cmMove;
                     }
                 }
             }
@@ -624,12 +621,11 @@ function findPlayerPosition(playerId, teamData) {
         const penaltyBoxYMax = 54.16; // 페널티 박스 y축 끝
         const centerY = 34; // 필드 중앙 (골대 중앙)
         const xOffset = 0.5; // 페널티 박스 앞쪽 끝에서 약간 뒤
-        const ySpacing = 4; // CB 간 y축 좌우 간격 (골대 중앙 근처에 배치)
-        
+        // 골대 중앙을 중심으로 배치, 둘 다 아래로 내려와야 함 (특히 두 번째 CB는 더 많이)
         if (cbIndex === 0) {
-            return { x: penaltyBoxXMax - xOffset, y: centerY - ySpacing }; // 왼쪽 CB (x: 16, y: 30)
+            return { x: penaltyBoxXMax - xOffset, y: centerY - 2 }; // 첫 번째 CB (x: 16, y: 32) - 골대 중앙 근처
         } else if (cbIndex === 1) {
-            return { x: penaltyBoxXMax - xOffset, y: centerY + ySpacing + 2 }; // 오른쪽 CB (x: 16, y: 38) - 더 아래로
+            return { x: penaltyBoxXMax - xOffset, y: centerY + 4 }; // 두 번째 CB (x: 16, y: 38) - 더 아래로
         } else {
             // 3명 이상인 경우 추가 배치 (페널티 박스 앞쪽 끝 근처, y축으로 좌우 넓게 분산)
             const penaltyBoxXMax = 16.5;
