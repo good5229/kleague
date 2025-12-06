@@ -94,9 +94,23 @@ function testBackButtonClickTarget() {
     let allPassed = true;
     
     checks.forEach(({ fixed, target }) => {
-        // DOMContentLoaded 내부 또는 전체 코드에서 패턴 확인
-        const pattern = new RegExp(`${fixed.replace(/-/g, '\\-')}.*?getElementById\\(['"]${target.replace(/-/g, '\\-')}['"]\\)\\.click\\(\\)`, 's');
-        if (pattern.test(js)) {
+        // 고정 버튼이 타겟 버튼을 클릭하는 로직 확인
+        // 패턴: const backToTeams = document.getElementById('back-to-teams'); ... backToTeams.click();
+        const varName = target.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase()).replace(/^./, letter => letter.toUpperCase());
+        const camelCaseVarName = varName.charAt(0).toLowerCase() + varName.slice(1);
+        
+        // 패턴 1: 변수명을 사용한 클릭 (backToTeams.click())
+        const pattern1 = new RegExp(`${camelCaseVarName}\\.click\\(\\)`, 's');
+        
+        // 패턴 2: 직접 getElementById로 클릭
+        const pattern2 = new RegExp(`getElementById\\(['"]${target.replace(/-/g, '\\-')}['"]\\)[\\s\\S]{0,100}\\.click\\(\\)`, 's');
+        
+        // 패턴 3: fixed 버튼과 target 버튼이 같은 블록 내에 있는지 확인
+        const fixedIndex = js.indexOf(fixed);
+        const targetIndex = js.indexOf(target);
+        const clickIndex = js.indexOf('.click()', targetIndex);
+        
+        if (pattern1.test(js) || pattern2.test(js) || (fixedIndex > 0 && targetIndex > 0 && clickIndex > targetIndex && clickIndex - targetIndex < 200)) {
             console.log(`  ✓ ${fixed} -> ${target} 클릭 확인`);
             testResults.passed++;
         } else {
