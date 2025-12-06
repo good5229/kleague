@@ -64,11 +64,9 @@ function selectTeam(teamName) {
     document.getElementById('best-11').classList.add('hidden');
     // 고정 버튼 표시/숨기기
     document.getElementById('back-to-teams-fixed').classList.remove('hidden');
-    document.querySelectorAll('.fixed-back-button').forEach(btn => {
-        if (btn.id !== 'back-to-teams-fixed') {
-            btn.classList.add('hidden');
-        }
-    });
+    document.getElementById('back-to-players-fixed').classList.add('hidden');
+    document.getElementById('back-to-players-from-analysis-fixed').classList.add('hidden');
+    document.getElementById('back-to-teams-from-best11-fixed').classList.add('hidden');
     
     // 팀 이름 및 로고 표시
     const teamHeader = document.getElementById('team-name-header');
