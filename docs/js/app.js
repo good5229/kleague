@@ -925,6 +925,26 @@ document.getElementById('back-to-players-from-analysis').addEventListener('click
     document.getElementById('team-analysis').classList.add('hidden');
 });
 
+// 베스트 11 보기 버튼
+document.getElementById('view-best-11').addEventListener('click', () => {
+    showBest11();
+});
+
+// 베스트 11에서 팀 목록으로 돌아가기
+document.getElementById('back-to-teams-from-best11').addEventListener('click', () => {
+    document.getElementById('team-selection').classList.remove('hidden');
+    document.getElementById('player-list').classList.add('hidden');
+    document.getElementById('player-detail').classList.add('hidden');
+    document.getElementById('team-analysis').classList.add('hidden');
+    document.getElementById('best-11').classList.add('hidden');
+});
+
+// 페이지 로드 시 개선점 데이터도 로딩
+window.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    loadTeamImprovements();
+});
+
 // 구현 과정 툴팁 함수
 function showImplementationTooltip(event) {
     const modal = document.getElementById('info-modal');
@@ -975,6 +995,5 @@ function hideImplementationTooltip() {
 window.showImplementationTooltip = showImplementationTooltip;
 window.hideImplementationTooltip = hideImplementationTooltip;
 
-// 페이지 로드 시 데이터 로딩
-window.addEventListener('DOMContentLoaded', loadData);
+// 페이지 로드 시 데이터 로딩 (이미 위에서 처리됨)
 

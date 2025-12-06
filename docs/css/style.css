@@ -74,6 +74,17 @@ header h1 {
     display: none;
 }
 
+.selection-options {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.btn-large {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
 .team-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
