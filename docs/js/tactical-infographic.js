@@ -120,14 +120,13 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         if (samePosition && player1Pos && player2Pos) {
             // 포지션별 표준 배치에 따라 간격 조정 (간격 확대)
             if (player1.position === 'CB') {
-                // CB: 골 에어리어 모서리(x=5.5)보다 약간 앞에 배치, 페널티 박스 안 공간을 좌우로 넓게 활용
-                const goalAreaEdge = 5.5; // 골 에어리어의 x 좌표 끝
-                const offset = 1.5; // 골 에어리어 모서리보다 약간 앞 (약 1cm)
-                const baseX = goalAreaEdge + offset; // x = 7
-                const spacing = 4; // CB 간 x축 좌우 간격 (페널티 박스 안 공간 좌우로 넓게 활용)
-                const centerY = 34; // y축은 중앙에 고정
-                const adjustedPos1 = { x: baseX - spacing, y: centerY }; // 왼쪽 CB (x: 3, y: 34)
-                const adjustedPos2 = { x: baseX + spacing, y: centerY }; // 오른쪽 CB (x: 11, y: 34)
+                // CB: 표준 축구 전술 다이어그램 기준 - 페널티 박스 안에서 골 에어리어 근처에 좌우로 적절한 간격 배치
+                const baseX = 8; // 골 에어리어 모서리(5.5)보다 약간 앞, 페널티 박스 안 적절한 위치
+                const centerY = 34; // 필드 중앙
+                const ySpacing = 6; // CB 간 y축 간격 (위아래로 적절한 간격)
+                const xSpacing = 2; // CB 간 x축 간격 (좌우로 적절한 간격)
+                const adjustedPos1 = { x: baseX - xSpacing, y: centerY - ySpacing }; // 왼쪽 위 CB (x: 6, y: 28)
+                const adjustedPos2 = { x: baseX + xSpacing, y: centerY + ySpacing }; // 오른쪽 아래 CB (x: 10, y: 40)
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -543,9 +542,9 @@ function findPlayerPosition(playerId, teamData) {
     // 참고: Opta, StatsBomb, Wyscout 표준 - 골키퍼는 골대 앞 중앙, CB는 페널티 박스 중앙에 넓은 간격
     const positionMap = {
         'GK': { x: 2, y: 34 },  // 골대 앞 중앙 (x: 2로 골대에 더 가깝게)
-        // CB: 골 에어리어 모서리(x=5.5)보다 약간 앞에 배치, 페널티 박스 안 공간을 좌우로 넓게 활용
-        'CB': { x: 3, y: 34 },  // 왼쪽 CB (골 에어리어 모서리 5.5보다 약간 앞, 좌우로 넓게)
-        'CB': { x: 11, y: 34 },  // 오른쪽 CB (골 에어리어 모서리 5.5보다 약간 앞, 좌우로 넓게)
+        // CB: 표준 축구 전술 다이어그램 기준 - 페널티 박스 안에서 골 에어리어 근처에 좌우로 적절한 간격 배치
+        'CB': { x: 6, y: 28 },  // 왼쪽 위 CB (골 에어리어 모서리 5.5보다 약간 앞, 페널티 박스 중앙 기준 위쪽)
+        'CB': { x: 10, y: 40 },  // 오른쪽 아래 CB (골 에어리어 모서리 5.5보다 약간 앞, 페널티 박스 중앙 기준 아래쪽)
         'LB': { x: 12, y: 15 },  // 왼쪽 풀백 (페널티 박스 왼쪽 측면)
         'RB': { x: 12, y: 53 },  // 오른쪽 풀백 (페널티 박스 오른쪽 측면)
         'LWB': { x: 12, y: 15 }, // 왼쪽 윙백
