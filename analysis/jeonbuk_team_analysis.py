@@ -977,11 +977,30 @@ def generate_markdown_report(jeonbuk_players_data, rankings, role_templates):
         md_content.append(f"- **롤 적합도**: {fit_score:.1f}점 (신뢰도: {confidence:.1%})")
         md_content.append(f"  - 코사인 유사도: {cosine_score:.1f}점 (방향 유사성)")
         md_content.append(f"  - 유클리드 거리 점수: {euclidean_score:.1f}점 (크기 차이)")
-        if game_bonus > 0:
-            md_content.append(f"  - 경기 수 보너스: +{game_bonus:.1f}점 ({game_count}경기 출전)")
+        if game_bonus != 0:
+            bonus_text = f"+{game_bonus:.1f}점" if game_bonus > 0 else f"{game_bonus:.1f}점"
+            md_content.append(f"  - 경기 수 보너스: {bonus_text} ({game_count}경기 출전)")
+        
+        # WAR 정보
+        war = player_info.get('war', 0.0)
+        war_bonus = player_info.get('war_bonus', 0)
+        war_games_with = player_info.get('war_games_with', 0)
+        war_games_without = player_info.get('war_games_without', 0)
+        
+        if war_bonus != 0:
+            bonus_text = f"+{war_bonus:.1f}점" if war_bonus > 0 else f"{war_bonus:.1f}점"
+            md_content.append(f"  - WAR 보너스: {bonus_text} (Wins Above Replacement)")
+        
+        if war_games_with > 0 and war_games_without > 0:
+            md_content.append(f"  - WAR: {war:+.1%} (선수 출전 경기 승률 - 미출전 경기 승률)")
+            md_content.append(f"    - 선수 출전 경기: {war_games_with}경기")
+            md_content.append(f"    - 선수 미출전 경기: {war_games_without}경기")
+        elif war_games_with > 0:
+            md_content.append(f"  - WAR: 계산 불가 (선수가 모든 경기에 출전하여 비교 기준 없음)")
+        
         if win_rate_bonus != 0:
             bonus_text = f"+{win_rate_bonus:.1f}점" if win_rate_bonus > 0 else f"{win_rate_bonus:.1f}점"
-            md_content.append(f"  - 팀 승률 기여도: {bonus_text} (출전 경기 승률: {team_win_rate:.1%})")
+            md_content.append(f"  - 팀 승률 보너스: {bonus_text} (보조 지표, 출전 경기 승률: {team_win_rate:.1%})")
         if rank is not None and total_players > 0:
             md_content.append(f"- **K리그 랭킹**: {rank}위 / {total_players}명 ({position} 포지션 내)")
             md_content.append(f"  - **랭킹 근거**: 같은 포지션({position}) 내에서 같은 롤({role})을 가진 선수들과 비교")
