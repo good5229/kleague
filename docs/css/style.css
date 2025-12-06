@@ -926,6 +926,262 @@ footer {
     }
 }
 
+/* 팀 개선점 스타일 */
+.team-improvements-container {
+    margin-bottom: 40px;
+}
+
+.weaknesses-summary {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.quality-gaps ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.quality-gaps li {
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.quality-gaps li:last-child {
+    border-bottom: none;
+}
+
+.recommendations-section {
+    margin-top: 30px;
+}
+
+.recommendation-group {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gap-info {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+.recommended-players-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.recommended-player-card {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.recommended-player-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.player-header h5 {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.player-team {
+    font-size: 0.85em;
+    color: #666;
+    background: #e0e0e0;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.player-info {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.improvement-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.improvement-badge {
+    background: #4CAF50;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.recommendation-reason {
+    font-size: 0.9em;
+    color: #555;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* 베스트 11 스타일 */
+.best-11-container {
+    margin-top: 20px;
+}
+
+.formation-diagram {
+    background: #2d5016;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 40px;
+}
+
+.formation-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.best-11-player {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 120px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.best-11-player:hover {
+    transform: scale(1.05);
+}
+
+.best-11-player.empty {
+    background: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+    cursor: default;
+}
+
+.player-name {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.player-position {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 3px;
+}
+
+.player-role {
+    font-size: 0.85em;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.player-score {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--team-primary, #667eea);
+    margin-bottom: 5px;
+}
+
+.player-team {
+    font-size: 0.8em;
+    color: #999;
+}
+
+.best-11-details {
+    margin-top: 40px;
+}
+
+.position-group {
+    margin-bottom: 30px;
+}
+
+.position-group h4 {
+    margin-bottom: 15px;
+    color: var(--team-primary, #667eea);
+}
+
+.position-players {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.best-11-detail-card {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.best-11-detail-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.detail-name {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.detail-team {
+    font-size: 0.85em;
+    color: #666;
+    background: #e0e0e0;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.detail-info {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.detail-role {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.detail-score {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--team-primary, #667eea);
+}
+
+.detail-games {
+    font-size: 0.85em;
+    color: #888;
+}
+
 @media (max-width: 768px) {
     .team-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
