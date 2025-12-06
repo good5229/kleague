@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K리그 선수 분석 시스템</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 구현 과정 버튼 (우상단 고정) -->
+        <button id="implementation-tooltip-btn-fixed" class="btn btn-info fixed-top-right" 
+                onclick="showImplementationTooltip(event)">
+            구현 과정 보기
+        </button>
+        
+        <header>
+            <h1>K리그 선수 분석 시스템</h1>
+            <p class="subtitle">데이터 기반 선수 스타일 분석 및 롤 적합도 평가</p>
+        </header>
+
+        <main>
+            <!-- 팀 선택 섹션 -->
+            <section id="team-selection" class="section">
+                <h2>팀 선택</h2>
+                <div class="team-grid" id="team-grid">
+                    <div class="loading">데이터 로딩 중...</div>
+                </div>
+            </section>
+
+            <!-- 선수 목록 섹션 -->
+            <section id="player-list" class="section hidden">
+                <h2 id="team-name-header"></h2>
+                <div class="back-button-container">
+                    <button id="back-to-teams" class="btn btn-secondary">← 팀 목록으로 돌아가기</button>
+                    <button id="view-team-analysis" class="btn btn-info">팀 분석 보기</button>
+                </div>
+                <div class="player-grid" id="player-grid">
+                    <!-- 선수 카드들이 여기에 동적으로 추가됩니다 -->
+                </div>
+            </section>
+            
+            <!-- 팀 분석 섹션 -->
+            <section id="team-analysis" class="section hidden">
+                <h2 id="team-analysis-header"></h2>
+                <div class="back-button-container">
+                    <button id="back-to-players-from-analysis" class="btn btn-secondary">← 선수 목록으로 돌아가기</button>
+                </div>
+                <div id="team-analysis-content">
+                    <!-- 팀 분석 내용이 여기에 동적으로 추가됩니다 -->
+                </div>
+            </section>
+
+            <!-- 선수 상세 정보 섹션 -->
+            <section id="player-detail" class="section hidden">
+                <h2 id="player-name-header"></h2>
+                <div class="back-button-container">
+                    <button id="back-to-players" class="btn btn-secondary">← 선수 목록으로 돌아가기</button>
+                </div>
+                <div id="player-detail-content">
+                    <!-- 선수 상세 정보가 여기에 동적으로 추가됩니다 -->
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>K리그 데이터 기반 선수 분석 시스템</p>
+        </footer>
+    </div>
+
+    <!-- 모달 -->
+    <div id="info-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>구현 과정</h2>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="js/team-logos.js"></script>
+    <script src="js/visualizations.js"></script>
+    <script src="js/tactical-infographic.js"></script>
+    <script src="js/team-analysis.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+
