@@ -189,6 +189,45 @@ header h1 {
 
 .back-button-container {
     margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.sort-controls {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sort-controls label {
+    font-weight: bold;
+    color: var(--team-text, #333);
+}
+
+.sort-controls select {
+    padding: 8px 12px;
+    border: 2px solid var(--team-primary, #667eea);
+    border-radius: 6px;
+    background: white;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.sort-controls select:hover {
+    border-color: var(--team-secondary, #764ba2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sort-controls select:focus {
+    outline: none;
+    border-color: var(--team-primary, #667eea);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .btn {
