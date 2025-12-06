@@ -123,11 +123,12 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
                 // CB: 골 에어리어 모서리(x=5.5)보다 약간 앞, x축 좌우로 널찍하게 배치
                 const goalAreaEdge = 5.5; // 골 에어리어 모서리
                 const offset = 0.5; // 골 에어리어 모서리보다 약간 앞 (약 1cm)
-                const baseX = goalAreaEdge + offset; // x = 6
                 const centerY = 34; // 필드 중앙
-                const xSpacing = 4; // CB 간 x축 좌우 간격 (널찍하게 배치)
-                const adjustedPos1 = { x: baseX - xSpacing, y: centerY }; // 왼쪽 CB (x: 2, y: 34)
-                const adjustedPos2 = { x: baseX + xSpacing, y: centerY }; // 오른쪽 CB (x: 10, y: 34)
+                const xSpacing = 3; // CB 간 x축 좌우 간격 (널찍하게 배치)
+                // 두 CB 모두 골 에어리어 모서리보다 앞에 있어야 하므로 baseX를 조정
+                const baseX = goalAreaEdge + offset + xSpacing; // x = 9
+                const adjustedPos1 = { x: baseX - xSpacing, y: centerY }; // 왼쪽 CB (x: 6, y: 34)
+                const adjustedPos2 = { x: baseX + xSpacing, y: centerY }; // 오른쪽 CB (x: 12, y: 34)
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -544,8 +545,8 @@ function findPlayerPosition(playerId, teamData) {
     const positionMap = {
         'GK': { x: 2, y: 34 },  // 골대 앞 중앙 (x: 2로 골대에 더 가깝게)
         // CB: 골 에어리어 모서리(x=5.5)보다 약간 앞, x축 좌우로 널찍하게 배치
-        'CB': { x: 2, y: 34 },  // 왼쪽 CB (골 에어리어 모서리 5.5보다 약간 앞, x축 좌우로 널찍하게)
-        'CB': { x: 10, y: 34 },  // 오른쪽 CB (골 에어리어 모서리 5.5보다 약간 앞, x축 좌우로 널찍하게)
+        'CB': { x: 6, y: 34 },  // 왼쪽 CB (골 에어리어 모서리 5.5보다 약간 앞, x축 좌우로 널찍하게)
+        'CB': { x: 12, y: 34 },  // 오른쪽 CB (골 에어리어 모서리 5.5보다 약간 앞, x축 좌우로 널찍하게)
         'LB': { x: 12, y: 15 },  // 왼쪽 풀백 (페널티 박스 왼쪽 측면)
         'RB': { x: 12, y: 53 },  // 오른쪽 풀백 (페널티 박스 오른쪽 측면)
         'LWB': { x: 12, y: 15 }, // 왼쪽 윙백
@@ -582,14 +583,15 @@ function findPlayerPosition(playerId, teamData) {
         // 사용자 요구사항: 골 에어리어 모서리(x=5.5)보다 약간 앞, x축 좌우로 널찍하게 배치
         const goalAreaEdge = 5.5; // 골 에어리어 모서리
         const offset = 0.5; // 골 에어리어 모서리보다 약간 앞 (약 1cm)
-        const baseX = goalAreaEdge + offset; // x = 6 (골 에어리어 모서리보다 약간 앞)
         const centerY = 34; // 필드 중앙
-        const xSpacing = 4; // CB 간 x축 좌우 간격 (널찍하게 배치)
+        const xSpacing = 3; // CB 간 x축 좌우 간격 (널찍하게 배치)
+        // 두 CB 모두 골 에어리어 모서리보다 앞에 있어야 하므로 baseX를 조정
+        const baseX = goalAreaEdge + offset + xSpacing; // x = 9 (왼쪽 CB가 골 에어리어보다 앞에 오도록)
         
         if (cbIndex === 0) {
-            return { x: baseX - xSpacing, y: centerY }; // 왼쪽 CB (x: 2, y: 34)
+            return { x: baseX - xSpacing, y: centerY }; // 왼쪽 CB (x: 6, y: 34)
         } else if (cbIndex === 1) {
-            return { x: baseX + xSpacing, y: centerY }; // 오른쪽 CB (x: 10, y: 34)
+            return { x: baseX + xSpacing, y: centerY }; // 오른쪽 CB (x: 12, y: 34)
         } else {
             // 3명 이상인 경우 추가 배치 (x축 좌우로 널찍하게)
             const startX = baseX - xSpacing;
