@@ -1027,10 +1027,11 @@ def generate_markdown_report(jeonbuk_players_data, rankings, role_templates):
                 top_team = top_player.get('team_name', '알 수 없음')
                 top_game_count = top_player.get('game_count', 0)
                 top_game_bonus = top_player.get('game_bonus', 0)
+                top_war_bonus = top_player.get('war_bonus', 0)
                 top_win_rate_bonus = top_player.get('win_rate_bonus', 0)
                 # 랭킹에서 가져온 점수 사용 (일관성 유지)
                 top_fit_score = top_player.get('fit_score', 0)
-                total_bonus = top_game_bonus + top_win_rate_bonus
+                total_bonus = top_game_bonus + top_war_bonus + top_win_rate_bonus
                 bonus_mark = f" (+{total_bonus:.1f})" if total_bonus != 0 else ""
                 md_content.append(f"| {top_player['rank']}위 | {top_player['player_name']} | {top_team} | {top_fit_score:.1f}점{bonus_mark} | {top_game_count}경기 | {top_confidence:.1%} | {mark}")
             
@@ -1148,8 +1149,12 @@ def main():
             'cosine_score': cosine_score,
             'euclidean_score': euclidean_score,
             'game_bonus': game_bonus,
+            'war_bonus': war_bonus,
             'win_rate_bonus': win_rate_bonus,
             'team_win_rate': profile.get('team_win_rate', 0.5),
+            'war': profile.get('war', 0.0),
+            'war_games_with': profile.get('war_games_with', 0),
+            'war_games_without': profile.get('war_games_without', 0),
             'game_count': profile.get('game_count', 0),
             'event_count': profile.get('event_count', 0),
             'profile': profile  # 나중에 개선 방안 제안에 사용
@@ -1176,8 +1181,12 @@ def main():
                     player_info['raw_score'] = rank_info.get('raw_score', player_info.get('raw_score', 0))
                     player_info['confidence'] = rank_info.get('confidence', player_info.get('confidence', 1.0))
                     player_info['game_bonus'] = rank_info.get('game_bonus', player_info.get('game_bonus', 0))
+                    player_info['war_bonus'] = rank_info.get('war_bonus', player_info.get('war_bonus', 0))
                     player_info['win_rate_bonus'] = rank_info.get('win_rate_bonus', player_info.get('win_rate_bonus', 0))
                     player_info['team_win_rate'] = rank_info.get('team_win_rate', player_info.get('team_win_rate', 0.5))
+                    player_info['war'] = rank_info.get('war', player_info.get('war', 0.0))
+                    player_info['war_games_with'] = rank_info.get('war_games_with', player_info.get('war_games_with', 0))
+                    player_info['war_games_without'] = rank_info.get('war_games_without', player_info.get('war_games_without', 0))
                     player_info['game_count'] = rank_info.get('game_count', player_info.get('game_count', 0))
                     player_info['event_count'] = rank_info.get('event_count', player_info.get('event_count', 0))
                     
