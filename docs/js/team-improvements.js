@@ -106,47 +106,62 @@ function renderTeamImprovements(teamName) {
     return html;
 }
 
-// 포메이션별 배치 순서 정의
+// 포메이션별 배치 순서 정의 (골키퍼가 아래쪽을 보고 서 있다고 가정)
+// 골키퍼의 왼쪽 = 우리가 보는 오른쪽 = R (Right)
+// 골키퍼의 오른쪽 = 우리가 보는 왼쪽 = L (Left)
 const FORMATION_LAYOUTS = {
     '4-4-2': [
         ['GK'],
-        ['LB', 'CB', 'CB', 'RB'],
-        ['LM', 'CM', 'CM', 'RM'],
+        ['RB', 'CB', 'CB', 'LB'],  // L/R 반전
+        ['RM', 'CM', 'CM', 'LM'],  // L/R 반전
         ['ST', 'ST']
     ],
     '4-3-3': [
         ['GK'],
-        ['LB', 'CB', 'CB', 'RB'],
+        ['RB', 'CB', 'CB', 'LB'],  // L/R 반전
         ['CDM', 'CM', 'CM'],
-        ['LW', 'ST', 'RW']
+        ['RW', 'ST', 'LW']  // L/R 반전
     ],
     '5-3-2': [
         ['GK'],
-        ['LWB', 'CB', 'CB', 'CB', 'RWB'],
+        ['RWB', 'CB', 'CB', 'CB', 'LWB'],  // L/R 반전
         ['CM', 'CM', 'CM'],
         ['ST', 'ST']
     ],
     '4-3-1-2': [
         ['GK'],
-        ['LB', 'CB', 'CB', 'RB'],
+        ['RB', 'CB', 'CB', 'LB'],  // L/R 반전
         ['CM', 'CM', 'CM'],
         ['CAM'],
         ['ST', 'ST']
     ],
     '4-5-1': [
         ['GK'],
-        ['LB', 'CB', 'CB', 'RB'],
-        ['LM', 'CM', 'CM', 'CM', 'RM'],
+        ['RB', 'CB', 'CB', 'LB'],  // L/R 반전
+        ['RM', 'CM', 'CM', 'CM', 'LM'],  // L/R 반전
         ['ST']
     ]
 };
 
-// 포메이션별 포지션 매핑 (LM/RM -> CM, LWB/RWB -> LB/RB 등)
+// 포메이션별 포지션 매핑 및 대체 포지션
 const POSITION_MAPPING = {
     'LM': 'CM',
     'RM': 'CM',
     'LWB': 'LB',
     'RWB': 'RB'
+};
+
+// 포지션 대체 우선순위 (해당 포지션이 없을 때 대체할 포지션)
+const POSITION_FALLBACK = {
+    'CDM': ['CM', 'CB'],  // CDM이 없으면 CM 또는 CB에서 찾기
+    'ST': ['CF', 'CAM'],  // ST가 없으면 CF 또는 CAM에서 찾기
+    'CAM': ['CM', 'CF'],  // CAM이 없으면 CM 또는 CF에서 찾기
+    'LW': ['LM', 'CM'],   // LW가 없으면 LM 또는 CM에서 찾기
+    'RW': ['RM', 'CM'],   // RW가 없으면 RM 또는 CM에서 찾기
+    'LM': ['CM', 'LW'],   // LM이 없으면 CM 또는 LW에서 찾기
+    'RM': ['CM', 'RW'],   // RM이 없으면 CM 또는 RW에서 찾기
+    'LWB': ['LB', 'LM'],  // LWB가 없으면 LB 또는 LM에서 찾기
+    'RWB': ['RB', 'RM']   // RWB가 없으면 RB 또는 RM에서 찾기
 };
 
 // 베스트 11 렌더링
@@ -178,26 +193,45 @@ function renderBest11(selectedFormation = '4-3-3') {
     formation.forEach((row, rowIdx) => {
         html += '<div class="formation-row">';
         row.forEach((position, posIdx) => {
-            // 포지션 매핑 적용 (LM -> CM, LWB -> LB 등)
-            const mappedPosition = POSITION_MAPPING[position] || position;
-            let players = formationData[mappedPosition] || [];
-            
-            // 정확한 포지션도 확인
-            if (formationData[position] && formationData[position].length > 0) {
-                players = formationData[position];
-            }
-            
-            // 해당 포지션의 선수 찾기 (중복 방지)
+            // 해당 포지션의 선수 찾기 (중복 방지, 대체 포지션 지원)
             let player = null;
             
-            if (players.length > 0) {
-                // 사용되지 않은 선수 찾기
-                for (const p of players) {
+            // 1. 정확한 포지션 매칭 시도
+            if (formationData[position] && formationData[position].length > 0) {
+                for (const p of formationData[position]) {
                     if (!usedPlayerIds.has(p.player_id)) {
                         player = p;
                         usedPlayerIds.add(p.player_id);
                         break;
                     }
+                }
+            }
+            
+            // 2. 포지션 매핑 적용 (LM -> CM 등)
+            if (!player) {
+                const mappedPosition = POSITION_MAPPING[position] || position;
+                const mappedPlayers = formationData[mappedPosition] || [];
+                for (const p of mappedPlayers) {
+                    if (!usedPlayerIds.has(p.player_id)) {
+                        player = p;
+                        usedPlayerIds.add(p.player_id);
+                        break;
+                    }
+                }
+            }
+            
+            // 3. 대체 포지션 시도 (CDM -> CM, ST -> CF 등)
+            if (!player && POSITION_FALLBACK[position]) {
+                for (const fallbackPos of POSITION_FALLBACK[position]) {
+                    const fallbackPlayers = formationData[fallbackPos] || [];
+                    for (const p of fallbackPlayers) {
+                        if (!usedPlayerIds.has(p.player_id)) {
+                            player = p;
+                            usedPlayerIds.add(p.player_id);
+                            break;
+                        }
+                    }
+                    if (player) break;
                 }
             }
             

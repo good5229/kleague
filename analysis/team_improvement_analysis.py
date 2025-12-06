@@ -254,7 +254,7 @@ FORMATION_CONFIGS = {
 }
 
 def generate_best_11_for_formation(all_teams_data, formation_name):
-    """특정 포메이션에 대한 베스트 11 생성 (중복 방지, 포지션 매핑 지원)"""
+    """특정 포메이션에 대한 베스트 11 생성 (중복 방지, 포지션 매핑 및 대체 포지션 지원)"""
     if formation_name not in FORMATION_CONFIGS:
         return {}
     
@@ -267,6 +267,19 @@ def generate_best_11_for_formation(all_teams_data, formation_name):
         'RM': 'CM',
         'LWB': 'LB',
         'RWB': 'RB'
+    }
+    
+    # 포지션 대체 우선순위 (해당 포지션이 없을 때 대체할 포지션)
+    position_fallback = {
+        'CDM': ['CM', 'CB'],  # CDM이 없으면 CM 또는 CB에서 찾기
+        'ST': ['CF', 'CAM'],  # ST가 없으면 CF 또는 CAM에서 찾기
+        'CAM': ['CM', 'CF'],  # CAM이 없으면 CM 또는 CF에서 찾기
+        'LW': ['LM', 'CM'],   # LW가 없으면 LM 또는 CM에서 찾기
+        'RW': ['RM', 'CM'],   # RW가 없으면 RM 또는 CM에서 찾기
+        'LM': ['CM', 'LW'],   # LM이 없으면 CM 또는 LW에서 찾기
+        'RM': ['CM', 'RW'],   # RM이 없으면 CM 또는 RW에서 찾기
+        'LWB': ['LB', 'LM'],  # LWB가 없으면 LB 또는 LM에서 찾기
+        'RWB': ['RB', 'RM']   # RWB가 없으면 RB 또는 RM에서 찾기
     }
     
     # 모든 선수 수집
@@ -287,31 +300,61 @@ def generate_best_11_for_formation(all_teams_data, formation_name):
     selected_player_ids = set()
     best_11 = {}
     
-    # 포지션별로 최고 선수 선택 (중복 방지)
+    # 포지션별로 최고 선수 선택 (중복 방지, 대체 포지션 지원)
     for position, count in position_requirements.items():
-        # 포지션 매핑 적용
-        search_position = position_mapping.get(position, position)
+        selected = []
         
-        # 해당 포지션의 선수들 중 아직 선택되지 않은 선수만 필터링
+        # 1. 정확한 포지션 매칭 시도
         position_players = [
             p for p in all_players 
-            if p['position'] == search_position and p['player_id'] not in selected_player_ids
+            if p['position'] == position and p['player_id'] not in selected_player_ids
         ]
         position_players.sort(key=lambda x: x['fit_score'], reverse=True)
         
-        selected = []
-        for player in position_players[:count]:
-            selected_player_ids.add(player['player_id'])
-            selected.append({
-                'player_id': player['player_id'],
-                'player_name': player['player_name'],
-                'position': position,  # 원래 포지션 이름 유지 (LM, RM 등)
-                'role': player['role'],
-                'fit_score': round(player['fit_score'], 1),
-                'team_name': player['team_name'],
-                'game_count': player['game_count'],
-                'team_win_rate': round(player['team_win_rate'], 3)
-            })
+        # 2. 포지션 매핑 적용 (LM -> CM 등)
+        if len(position_players) < count:
+            mapped_position = position_mapping.get(position, position)
+            mapped_players = [
+                p for p in all_players 
+                if p['position'] == mapped_position and p['player_id'] not in selected_player_ids
+            ]
+            mapped_players.sort(key=lambda x: x['fit_score'], reverse=True)
+            position_players.extend(mapped_players)
+            position_players.sort(key=lambda x: x['fit_score'], reverse=True)
+        
+        # 3. 대체 포지션 시도 (CDM -> CM, ST -> CF 등)
+        if len(position_players) < count and position in position_fallback:
+            for fallback_pos in position_fallback[position]:
+                fallback_players = [
+                    p for p in all_players 
+                    if p['position'] == fallback_pos and p['player_id'] not in selected_player_ids
+                ]
+                fallback_players.sort(key=lambda x: x['fit_score'], reverse=True)
+                position_players.extend(fallback_players)
+            position_players.sort(key=lambda x: x['fit_score'], reverse=True)
+        
+        # 중복 제거 (같은 선수가 여러 번 포함될 수 있음)
+        seen_ids = set()
+        unique_players = []
+        for p in position_players:
+            if p['player_id'] not in seen_ids:
+                seen_ids.add(p['player_id'])
+                unique_players.append(p)
+        
+        # 필요한 수만큼 선수 선택
+        for player in unique_players[:count]:
+            if player['player_id'] not in selected_player_ids:
+                selected_player_ids.add(player['player_id'])
+                selected.append({
+                    'player_id': player['player_id'],
+                    'player_name': player['player_name'],
+                    'position': position,  # 원래 포지션 이름 유지 (LM, RM 등)
+                    'role': player['role'],
+                    'fit_score': round(player['fit_score'], 1),
+                    'team_name': player['team_name'],
+                    'game_count': player['game_count'],
+                    'team_win_rate': round(player['team_win_rate'], 3)
+                })
         
         if selected:
             best_11[position] = selected
