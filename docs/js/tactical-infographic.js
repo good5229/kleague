@@ -509,30 +509,78 @@ function createPassConnection(x1, y1, x2, y2, frequency) {
 }
 
 // 선수 포지션 찾기 (팀 데이터에서)
+// 표준 축구 전술 다이어그램 기준으로 포지션 배치
+// 참고: Opta, StatsBomb, Wyscout, FIFA 전술 분석 도구
 function findPlayerPosition(playerId, teamData) {
     if (!teamData || !teamData.players) return null;
     
     const player = teamData.players.find(p => p.player_id === playerId);
     if (!player || !player.position) return null;
     
-    // 포지션별 기본 좌표 (4-3-3 기준)
+    // 포지션별 표준 좌표 (x: 0-100, y: 0-68)
+    // x축: 골대에서 골대까지 (0 = 왼쪽 골대, 100 = 오른쪽 골대)
+    // y축: 위에서 아래까지 (0 = 위쪽, 68 = 아래쪽)
+    // 페널티 박스: x=0-16.5, y=13.84-54.16
     const positionMap = {
-        'GK': { x: 5, y: 34 },
-        'CB': { x: 15, y: 34 },
-        'LB': { x: 15, y: 15 },
-        'RB': { x: 15, y: 53 },
-        'CDM': { x: 30, y: 34 },
-        'CM': { x: 35, y: 34 },
-        'CAM': { x: 50, y: 34 },
-        'LM': { x: 35, y: 15 },
-        'RM': { x: 35, y: 53 },
-        'LW': { x: 65, y: 15 },
-        'RW': { x: 65, y: 53 },
-        'ST': { x: 80, y: 34 },
-        'CF': { x: 75, y: 34 }
+        'GK': { x: 3, y: 34 },  // 골대 앞 중앙
+        // CB: 페널티 박스 중앙에 일정 간격을 두고 좌우 배치
+        'CB': { x: 12, y: 28 },  // 왼쪽 CB (페널티 박스 중앙, 위쪽)
+        'CB': { x: 12, y: 40 },  // 오른쪽 CB (페널티 박스 중앙, 아래쪽)
+        'LB': { x: 12, y: 15 },  // 왼쪽 풀백 (페널티 박스 왼쪽 측면)
+        'RB': { x: 12, y: 53 },  // 오른쪽 풀백 (페널티 박스 오른쪽 측면)
+        'LWB': { x: 12, y: 15 }, // 왼쪽 윙백
+        'RWB': { x: 12, y: 53 }, // 오른쪽 윙백
+        // 미드필더: 중앙 미드필드 영역에 배치 (x: 35-50)
+        'CDM': { x: 30, y: 34 }, // 수비형 미드필더 (페널티 박스 앞 중앙)
+        'CM': { x: 42, y: 28 },  // 왼쪽 중앙 미드필더 (중앙 미드필드, 위쪽)
+        'CM': { x: 42, y: 40 },  // 오른쪽 중앙 미드필더 (중앙 미드필드, 아래쪽)
+        'CAM': { x: 50, y: 34 }, // 공격형 미드필더 (중앙 미드필드 앞쪽)
+        'LM': { x: 42, y: 15 },  // 왼쪽 미드필더 (측면 미드필드)
+        'RM': { x: 42, y: 53 },  // 오른쪽 미드필더 (측면 미드필드)
+        // 공격수: 전방 영역에 배치
+        'LW': { x: 65, y: 15 },  // 왼쪽 윙어
+        'RW': { x: 65, y: 53 },  // 오른쪽 윙어
+        'ST': { x: 80, y: 34 },  // 스트라이커 (페널티 박스 앞 중앙)
+        'CF': { x: 75, y: 34 }   // 센터 포워드
     };
     
-    return positionMap[player.position] || { x: 50, y: 34 };
+    // 같은 포지션의 여러 선수를 구분하기 위한 로직
+    const pos = positionMap[player.position];
+    if (!pos) {
+        return { x: 50, y: 34 }; // 기본값: 중앙
+    }
+    
+    // CB의 경우, 같은 팀의 다른 CB와 구분하여 배치
+    if (player.position === 'CB') {
+        // 팀의 모든 CB 찾기
+        const allCBs = teamData.players.filter(p => p.position === 'CB');
+        const cbIndex = allCBs.findIndex(p => p.player_id === playerId);
+        if (cbIndex === 0) {
+            return { x: 12, y: 28 }; // 첫 번째 CB: 위쪽
+        } else if (cbIndex === 1) {
+            return { x: 12, y: 40 }; // 두 번째 CB: 아래쪽
+        } else {
+            // 3명 이상인 경우 추가 배치
+            const spacing = 12 / (allCBs.length - 1);
+            return { x: 12, y: 28 + (cbIndex * spacing) };
+        }
+    }
+    
+    // CM의 경우도 마찬가지
+    if (player.position === 'CM') {
+        const allCMs = teamData.players.filter(p => p.position === 'CM');
+        const cmIndex = allCMs.findIndex(p => p.player_id === playerId);
+        if (cmIndex === 0) {
+            return { x: 42, y: 28 }; // 첫 번째 CM: 위쪽
+        } else if (cmIndex === 1) {
+            return { x: 42, y: 40 }; // 두 번째 CM: 아래쪽
+        } else {
+            const spacing = 12 / (allCMs.length - 1);
+            return { x: 42, y: 28 + (cmIndex * spacing) };
+        }
+    }
+    
+    return pos;
 }
 
 // 클러스터 효과성 인포그래픽 생성 (최적화)
