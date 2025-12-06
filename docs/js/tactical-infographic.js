@@ -120,10 +120,13 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         if (samePosition && player1Pos && player2Pos) {
             // 포지션별 표준 배치에 따라 간격 조정 (간격 확대)
             if (player1.position === 'CB') {
-                // CB: 페널티 박스 중앙에 널찍한 간격을 두고 좌우 배치
-                const spacing = 12; // CB 간 널찍한 간격 (겹침 방지)
-                const adjustedPos1 = { x: player1Pos.x, y: player1Pos.y - spacing }; // 위쪽 CB
-                const adjustedPos2 = { x: player2Pos.x, y: player2Pos.y + spacing }; // 아래쪽 CB
+                // CB: 골 에어리어 모서리보다 약간 앞에 배치, 페널티 박스 안 공간 넓게 활용
+                const goalAreaTop = 24.66;
+                const goalAreaBottom = 43.34;
+                const offset = 2.5; // 골 에어리어 모서리보다 약간 앞
+                const spacing = 14; // CB 간 널찍한 간격 (페널티 박스 안 공간 넓게 활용)
+                const adjustedPos1 = { x: player1Pos.x, y: goalAreaTop - offset }; // 위쪽 CB (y: 22.16)
+                const adjustedPos2 = { x: player2Pos.x, y: goalAreaBottom + offset }; // 아래쪽 CB (y: 45.84)
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -539,9 +542,9 @@ function findPlayerPosition(playerId, teamData) {
     // 참고: Opta, StatsBomb, Wyscout 표준 - 골키퍼는 골대 앞 중앙, CB는 페널티 박스 중앙에 넓은 간격
     const positionMap = {
         'GK': { x: 2, y: 34 },  // 골대 앞 중앙 (x: 2로 골대에 더 가깝게)
-        // CB: 페널티 박스 중앙에 널찍한 간격을 두고 좌우 배치 (구석까지 가지 않게)
-        'CB': { x: 12, y: 24 },  // 왼쪽 CB (페널티 박스 중앙, 위쪽, 널찍한 간격)
-        'CB': { x: 12, y: 44 },  // 오른쪽 CB (페널티 박스 중앙, 아래쪽, 널찍한 간격)
+        // CB: 골 에어리어 모서리보다 약간 앞에 배치, 페널티 박스 안 공간 넓게 활용
+        'CB': { x: 12, y: 22.16 },  // 왼쪽 CB (골 에어리어 위쪽 모서리 24.66보다 약간 앞)
+        'CB': { x: 12, y: 45.84 },  // 오른쪽 CB (골 에어리어 아래쪽 모서리 43.34보다 약간 앞)
         'LB': { x: 12, y: 15 },  // 왼쪽 풀백 (페널티 박스 왼쪽 측면)
         'RB': { x: 12, y: 53 },  // 오른쪽 풀백 (페널티 박스 오른쪽 측면)
         'LWB': { x: 12, y: 15 }, // 왼쪽 윙백
@@ -567,21 +570,27 @@ function findPlayerPosition(playerId, teamData) {
     }
     
     // CB의 경우, 같은 팀의 다른 CB와 구분하여 배치 (널찍한 간격)
+    // 골 에어리어 모서리(24.66/43.34)보다 약간 앞에 배치하되, 페널티 박스 안 공간을 넓게 활용
     if (player.position === 'CB') {
         // 팀의 모든 CB 찾기
         const allCBs = teamData.players.filter(p => p.position === 'CB');
         const cbIndex = allCBs.findIndex(p => p.player_id === playerId);
-        const centerY = 34; // 필드 중앙
-        const spacing = 10; // CB 간 널찍한 간격 (페널티 박스 중앙에 배치되되 넓게)
+        // 골 에어리어 모서리: y = 24.66 (위쪽), 43.34 (아래쪽)
+        // 모서리보다 약간 앞에 배치: y = 22 (위쪽), 46 (아래쪽)
+        const goalAreaTop = 24.66;
+        const goalAreaBottom = 43.34;
+        const offset = 2.5; // 골 에어리어 모서리보다 약간 앞 (약 1cm)
+        const spacing = 14; // CB 간 널찍한 간격 (페널티 박스 안 공간 넓게 활용)
         
         if (cbIndex === 0) {
-            return { x: 12, y: centerY - spacing }; // 첫 번째 CB: 중앙 기준 위쪽 (y: 24)
+            return { x: 12, y: goalAreaTop - offset }; // 첫 번째 CB: 골 에어리어 위쪽 모서리보다 앞 (y: 22.16)
         } else if (cbIndex === 1) {
-            return { x: 12, y: centerY + spacing }; // 두 번째 CB: 중앙 기준 아래쪽 (y: 44)
+            return { x: 12, y: goalAreaBottom + offset }; // 두 번째 CB: 골 에어리어 아래쪽 모서리보다 앞 (y: 45.84)
         } else {
             // 3명 이상인 경우 추가 배치 (널찍한 간격 유지)
-            const totalSpacing = spacing * 2; // 위아래 총 간격 (20 단위)
-            const startY = centerY - spacing;
+            const startY = goalAreaTop - offset;
+            const endY = goalAreaBottom + offset;
+            const totalSpacing = endY - startY; // 위아래 총 간격
             const step = totalSpacing / (allCBs.length - 1);
             return { x: 12, y: startY + (cbIndex * step) };
         }
