@@ -10,31 +10,33 @@ function createFootballFieldSVG(width = 600, height = 400) {
     svg.style.background = '#2d5016';
     svg.style.borderRadius = '8px';
     
-    // 필드 라인
+    // 필드 라인 (scaleFactor 적용)
+    const baseWidth = 100;
+    const baseHeight = 68;
     const fieldLines = [
         // 외곽 라인
-        { x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 0, y1: 68, x2: 100, y2: 68, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 0, y1: 0, x2: 0, y2: 68, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 100, y1: 0, x2: 100, y2: 68, stroke: '#fff', 'stroke-width': 0.3 },
+        { x1: 0, y1: 0, x2: baseWidth * scaleFactor, y2: 0, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: 0, y1: baseHeight * scaleFactor, x2: baseWidth * scaleFactor, y2: baseHeight * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: 0, y1: 0, x2: 0, y2: baseHeight * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: baseWidth * scaleFactor, y1: 0, x2: baseWidth * scaleFactor, y2: baseHeight * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
         // 중앙 라인
-        { x1: 50, y1: 0, x2: 50, y2: 68, stroke: '#fff', 'stroke-width': 0.3 },
+        { x1: (baseWidth / 2) * scaleFactor, y1: 0, x2: (baseWidth / 2) * scaleFactor, y2: baseHeight * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
         // 중앙 서클
-        { cx: 50, cy: 34, r: 9.15, fill: 'none', stroke: '#fff', 'stroke-width': 0.3 },
+        { cx: (baseWidth / 2) * scaleFactor, cy: (baseHeight / 2) * scaleFactor, r: 9.15 * scaleFactor, fill: 'none', stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
         // 페널티 박스
-        { x1: 0, y1: 13.84, x2: 16.5, y2: 13.84, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 0, y1: 54.16, x2: 16.5, y2: 54.16, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 16.5, y1: 13.84, x2: 16.5, y2: 54.16, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 100, y1: 13.84, x2: 83.5, y2: 13.84, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 100, y1: 54.16, x2: 83.5, y2: 54.16, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 83.5, y1: 13.84, x2: 83.5, y2: 54.16, stroke: '#fff', 'stroke-width': 0.3 },
+        { x1: 0, y1: 13.84 * scaleFactor, x2: 16.5 * scaleFactor, y2: 13.84 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: 0, y1: 54.16 * scaleFactor, x2: 16.5 * scaleFactor, y2: 54.16 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: 16.5 * scaleFactor, y1: 13.84 * scaleFactor, x2: 16.5 * scaleFactor, y2: 54.16 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: baseWidth * scaleFactor, y1: 13.84 * scaleFactor, x2: (baseWidth - 16.5) * scaleFactor, y2: 13.84 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: baseWidth * scaleFactor, y1: 54.16 * scaleFactor, x2: (baseWidth - 16.5) * scaleFactor, y2: 54.16 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: (baseWidth - 16.5) * scaleFactor, y1: 13.84 * scaleFactor, x2: (baseWidth - 16.5) * scaleFactor, y2: 54.16 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
         // 골 에어리어
-        { x1: 0, y1: 24.66, x2: 5.5, y2: 24.66, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 0, y1: 43.34, x2: 5.5, y2: 43.34, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 5.5, y1: 24.66, x2: 5.5, y2: 43.34, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 100, y1: 24.66, x2: 94.5, y2: 24.66, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 100, y1: 43.34, x2: 94.5, y2: 43.34, stroke: '#fff', 'stroke-width': 0.3 },
-        { x1: 94.5, y1: 24.66, x2: 94.5, y2: 43.34, stroke: '#fff', 'stroke-width': 0.3 }
+        { x1: 0, y1: 24.66 * scaleFactor, x2: 5.5 * scaleFactor, y2: 24.66 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: 0, y1: 43.34 * scaleFactor, x2: 5.5 * scaleFactor, y2: 43.34 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: 5.5 * scaleFactor, y1: 24.66 * scaleFactor, x2: 5.5 * scaleFactor, y2: 43.34 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: baseWidth * scaleFactor, y1: 24.66 * scaleFactor, x2: (baseWidth - 5.5) * scaleFactor, y2: 24.66 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: baseWidth * scaleFactor, y1: 43.34 * scaleFactor, x2: (baseWidth - 5.5) * scaleFactor, y2: 43.34 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor },
+        { x1: (baseWidth - 5.5) * scaleFactor, y1: 24.66 * scaleFactor, x2: (baseWidth - 5.5) * scaleFactor, y2: 43.34 * scaleFactor, stroke: '#fff', 'stroke-width': 0.3 * scaleFactor }
     ];
     
     fieldLines.forEach(line => {
@@ -95,8 +97,8 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         // 승률 게이지 차트
         const winRateGauge = createWinRateGauge(duo.win_rate, duo.games_together);
         
-        // 필드 다이어그램
-        const fieldSVG = createFootballFieldSVG(400, 280);
+        // 필드 다이어그램 (크기 확대, scaleFactor 2.0으로 폰트 크기 유지)
+        const fieldSVG = createFootballFieldSVG(800, 560, 2.0);
         
         // 선수 정보 가져오기
         const player1 = teamData.players.find(p => p.player_id === duo.player1);
@@ -414,30 +416,45 @@ function createPlayerMarker(playerName, x, y, color) {
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('transform', `translate(${x}, ${y})`);
     
-    // 원형 마커 (크기 증가)
+    // SVG의 viewBox scaleFactor를 확인하여 마커 및 텍스트 크기 조정
+    const svgElement = g.ownerDocument?.documentElement || g.closest('svg');
+    let scaleFactor = 1.0;
+    if (svgElement) {
+        const viewBox = svgElement.getAttribute('viewBox');
+        if (viewBox) {
+            const [, , vw, vh] = viewBox.split(' ').map(Number);
+            if (vw && vw > 100) {
+                scaleFactor = vw / 100; // viewBox가 확대되었으면 scaleFactor 계산
+            }
+        }
+    }
+    
+    // 원형 마커 (크기 증가, scaleFactor 적용하여 절대 크기 유지)
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('r', '3.5');
+    circle.setAttribute('r', 3.5 * scaleFactor);
     circle.setAttribute('fill', color);
     circle.setAttribute('stroke', '#fff');
-    circle.setAttribute('stroke-width', '0.5');
+    circle.setAttribute('stroke-width', 0.5 * scaleFactor);
     circle.setAttribute('class', 'player-marker');
     g.appendChild(circle);
     
     // 선수 이름 텍스트 (줄바꿈 지원)
+    
     const lines = playerName.split('\n');
-    const lineHeight = 3;
-    const startY = -6 - ((lines.length - 1) * lineHeight / 2);
+    const lineHeight = 3 * scaleFactor; // scaleFactor 적용
+    const startY = -6 * scaleFactor - ((lines.length - 1) * lineHeight / 2);
+    const fontSize = 2.5 * scaleFactor; // 폰트 크기도 scaleFactor 적용하여 절대 크기 유지
     
     lines.forEach((line, idx) => {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', '0');
         text.setAttribute('y', startY + (idx * lineHeight));
         text.setAttribute('text-anchor', 'middle');
-        text.setAttribute('font-size', '2.5');
+        text.setAttribute('font-size', fontSize);
         text.setAttribute('font-weight', 'bold');
         text.setAttribute('fill', '#fff');
         text.setAttribute('stroke', '#000');
-        text.setAttribute('stroke-width', '0.2');
+        text.setAttribute('stroke-width', 0.2 * scaleFactor);
         text.setAttribute('paint-order', 'stroke fill');
         text.textContent = line;
         g.appendChild(text);
@@ -538,8 +555,8 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
         // 승률 게이지
         const winRateGauge = createWinRateGauge(cluster.win_rate, cluster.active_games);
         
-        // 필드 다이어그램 (크기 확대)
-        const fieldSVG = createFootballFieldSVG(800, 560);
+        // 필드 다이어그램 (크기 확대, scaleFactor 2.0으로 폰트 크기 유지)
+        const fieldSVG = createFootballFieldSVG(800, 560, 2.0);
         
         // DocumentFragment로 배치 최적화
         const fieldFragment = document.createDocumentFragment();
