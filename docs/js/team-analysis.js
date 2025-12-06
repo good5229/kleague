@@ -8,6 +8,12 @@ async function renderTeamAnalysis() {
     document.getElementById('player-list').classList.add('hidden');
     document.getElementById('player-detail').classList.add('hidden');
     document.getElementById('team-analysis').classList.remove('hidden');
+    document.getElementById('best-11').classList.add('hidden');
+    // 고정 버튼 표시/숨기기
+    document.getElementById('back-to-teams-fixed').classList.add('hidden');
+    document.getElementById('back-to-players-from-analysis-fixed').classList.remove('hidden');
+    document.getElementById('back-to-players-fixed').classList.add('hidden');
+    document.getElementById('back-to-teams-from-best11-fixed').classList.add('hidden');
     
     const content = document.getElementById('team-analysis-content');
     const header = document.getElementById('team-analysis-header');

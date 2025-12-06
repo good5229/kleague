@@ -1009,6 +1009,8 @@ document.getElementById('back-to-players-from-analysis').addEventListener('click
     // 고정 버튼 표시/숨기기
     document.getElementById('back-to-players-from-analysis-fixed').classList.add('hidden');
     document.getElementById('back-to-teams-fixed').classList.remove('hidden');
+    document.getElementById('back-to-players-fixed').classList.add('hidden');
+    document.getElementById('back-to-teams-from-best11-fixed').classList.add('hidden');
 });
 
 // 고정 뒤로가기 버튼 (팀 분석)
