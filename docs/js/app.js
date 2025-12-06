@@ -118,13 +118,34 @@ function applyTeamColorTheme(teamColor) {
 
 // 선수 선택 (전역 함수로 노출)
 window.selectPlayer = function(playerId) {
-    const player = currentTeam.players.find(p => p.player_id === playerId);
-    if (!player) return;
+    // 현재 팀에서 선수 찾기
+    let player = currentTeam ? currentTeam.players.find(p => p.player_id === playerId) : null;
+    let playerTeam = currentTeam;
     
+    // 현재 팀에 없으면 모든 팀에서 찾기 (베스트 11 등에서 호출된 경우)
+    if (!player) {
+        for (const teamName in teamsData) {
+            const team = teamsData[teamName];
+            const foundPlayer = team.players.find(p => p.player_id === playerId);
+            if (foundPlayer) {
+                player = foundPlayer;
+                playerTeam = team;
+                break;
+            }
+        }
+    }
+    
+    if (!player || !playerTeam) {
+        console.warn('선수를 찾을 수 없습니다:', playerId);
+        return;
+    }
+    
+    // 선수가 속한 팀을 현재 팀으로 설정
+    currentTeam = playerTeam;
     currentPlayer = player;
     selectedComparisonPlayers = []; // 비교 목록 초기화
     
-    // 팀 색상 유지
+    // 팀 색상 적용
     const teamColor = getTeamColor(currentTeam.team_name);
     applyTeamColorTheme(teamColor);
     
@@ -132,6 +153,8 @@ window.selectPlayer = function(playerId) {
     document.getElementById('team-selection').classList.add('hidden');
     document.getElementById('player-list').classList.add('hidden');
     document.getElementById('player-detail').classList.remove('hidden');
+    document.getElementById('team-analysis').classList.add('hidden');
+    document.getElementById('best-11-section').classList.add('hidden');
     
     // 선수 이름 표시
     document.getElementById('player-name-header').textContent = player.player_name;
