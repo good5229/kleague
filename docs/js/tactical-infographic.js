@@ -120,14 +120,15 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
         if (samePosition && player1Pos && player2Pos) {
             // 포지션별 표준 배치에 따라 간격 조정 (간격 확대)
             if (player1.position === 'CB') {
-                // CB: 레퍼런스 이미지 기준 - "top of the penalty box" = x축으로 페널티 박스의 앞쪽 끝
-                // CB는 페널티 박스의 앞쪽 끝(x=16.5 근처)에 배치되고, y축으로 좌우 넓게 분산
+                // CB: 레퍼런스 이미지 기준 - 골대 중앙(y=34) 근처에 배치, y축으로 좌우 넓게 분산
+                // 골대가 중앙에 있으므로 CB는 골대를 중심으로 배치되어야 함
                 const penaltyBoxXMax = 16.5; // 페널티 박스 x축 끝 (골대에서 멀어지는 방향)
-                const centerY = 34; // 필드 중앙
+                const centerY = 34; // 필드 중앙 (골대 중앙)
                 const xOffset = 0.5; // 페널티 박스 앞쪽 끝에서 약간 뒤
-                const ySpacing = 8; // CB 간 y축 좌우 간격 (페널티 박스 폭을 넓게 활용)
-                const adjustedPos1 = { x: penaltyBoxXMax - xOffset, y: centerY - ySpacing }; // 왼쪽 CB (x: 16, y: 26)
-                const adjustedPos2 = { x: penaltyBoxXMax - xOffset, y: centerY + ySpacing }; // 오른쪽 CB (x: 16, y: 42)
+                const ySpacing = 4; // CB 간 y축 좌우 간격 (골대 중앙 근처에 배치)
+                // 첫 번째 CB는 약간 위, 두 번째 CB는 약간 아래 (골대 중앙 기준)
+                const adjustedPos1 = { x: penaltyBoxXMax - xOffset, y: centerY - ySpacing }; // 왼쪽 CB (x: 16, y: 30)
+                const adjustedPos2 = { x: penaltyBoxXMax - xOffset, y: centerY + ySpacing + 2 }; // 오른쪽 CB (x: 16, y: 38) - 더 아래로
                 
                 const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
@@ -211,19 +212,55 @@ function createDuoEffectivenessInfographic(container, duos, teamData) {
                 fieldFragment.appendChild(connection.line);
             }
         } else {
-            // 다른 포지션이거나 위치 정보가 없는 경우 기존 방식
-            if (player1Pos) {
-                const marker1 = createPlayerMarker(duo.player1_name, player1Pos.x, player1Pos.y, '#4ECDC4');
+            // 다른 포지션의 듀오 - 포지션별로 적절히 조정
+            let adjustedPos1 = player1Pos ? { ...player1Pos } : null;
+            let adjustedPos2 = player2Pos ? { ...player2Pos } : null;
+            
+            if (player1 && player2 && adjustedPos1 && adjustedPos2) {
+                // CB + LB: LB가 x축으로 더 우측으로 이동
+                if ((player1.position === 'CB' && player2.position === 'LB') || 
+                    (player1.position === 'LB' && player2.position === 'CB')) {
+                    const cbPos = player1.position === 'CB' ? adjustedPos1 : adjustedPos2;
+                    const lbPos = player1.position === 'LB' ? adjustedPos1 : adjustedPos2;
+                    // LB를 x축으로 더 우측으로 이동 (약 3-4 단위)
+                    if (player1.position === 'LB') {
+                        adjustedPos1.x += 3.5;
+                    } else {
+                        adjustedPos2.x += 3.5;
+                    }
+                }
+                // CB + CM: CM이 x축으로 더 우측으로 이동, CB도 조금 이동. CM이 CB보다 2배 더 이동
+                else if ((player1.position === 'CB' && (player2.position === 'CM' || player2.position === 'CDM')) ||
+                         (player2.position === 'CB' && (player1.position === 'CM' || player1.position === 'CDM'))) {
+                    const cbPos = player1.position === 'CB' ? adjustedPos1 : adjustedPos2;
+                    const cmPos = (player1.position === 'CM' || player1.position === 'CDM') ? adjustedPos1 : adjustedPos2;
+                    // CB를 x축으로 약간 이동 (1-2 단위)
+                    if (player1.position === 'CB') {
+                        adjustedPos1.x += 1.5;
+                    } else {
+                        adjustedPos2.x += 1.5;
+                    }
+                    // CM을 x축으로 더 많이 이동 (CB의 2배, 약 3-4 단위)
+                    if (player1.position === 'CM' || player1.position === 'CDM') {
+                        adjustedPos1.x += 3;
+                    } else {
+                        adjustedPos2.x += 3;
+                    }
+                }
+            }
+            
+            if (adjustedPos1) {
+                const marker1 = createPlayerMarker(duo.player1_name, adjustedPos1.x, adjustedPos1.y, '#4ECDC4');
                 fieldFragment.appendChild(marker1);
             }
-            if (player2Pos) {
-                const marker2 = createPlayerMarker(duo.player2_name, player2Pos.x, player2Pos.y, '#FF6B6B');
+            if (adjustedPos2) {
+                const marker2 = createPlayerMarker(duo.player2_name, adjustedPos2.x, adjustedPos2.y, '#FF6B6B');
                 fieldFragment.appendChild(marker2);
             }
             
             // 패스 연결선
-            if (player1Pos && player2Pos) {
-                const connection = createPassConnection(player1Pos.x, player1Pos.y, player2Pos.x, player2Pos.y, duo.pass_frequency);
+            if (adjustedPos1 && adjustedPos2) {
+                const connection = createPassConnection(adjustedPos1.x, adjustedPos1.y, adjustedPos2.x, adjustedPos2.y, duo.pass_frequency);
                 let defs = fieldSVG.querySelector('defs');
                 if (!defs) {
                     defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -585,14 +622,14 @@ function findPlayerPosition(playerId, teamData) {
         const penaltyBoxXMax = 16.5; // 페널티 박스 x축 끝 (골대에서 멀어지는 방향)
         const penaltyBoxYMin = 13.84; // 페널티 박스 y축 시작
         const penaltyBoxYMax = 54.16; // 페널티 박스 y축 끝
-        const centerY = 34; // 필드 중앙
+        const centerY = 34; // 필드 중앙 (골대 중앙)
         const xOffset = 0.5; // 페널티 박스 앞쪽 끝에서 약간 뒤
-        const ySpacing = 8; // CB 간 y축 좌우 간격 (페널티 박스 폭을 넓게 활용)
+        const ySpacing = 4; // CB 간 y축 좌우 간격 (골대 중앙 근처에 배치)
         
         if (cbIndex === 0) {
-            return { x: penaltyBoxXMax - xOffset, y: centerY - ySpacing }; // 왼쪽 CB (x: 16, y: 26)
+            return { x: penaltyBoxXMax - xOffset, y: centerY - ySpacing }; // 왼쪽 CB (x: 16, y: 30)
         } else if (cbIndex === 1) {
-            return { x: penaltyBoxXMax - xOffset, y: centerY + ySpacing }; // 오른쪽 CB (x: 16, y: 42)
+            return { x: penaltyBoxXMax - xOffset, y: centerY + ySpacing + 2 }; // 오른쪽 CB (x: 16, y: 38) - 더 아래로
         } else {
             // 3명 이상인 경우 추가 배치 (페널티 박스 앞쪽 끝 근처, y축으로 좌우 넓게 분산)
             const penaltyBoxXMax = 16.5;
@@ -662,7 +699,7 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
         const playerPositions = new Map(); // playerId -> position (연결선용)
         const playerNames = cluster.player_names || [];
         
-        // 좌표별로 선수 그룹화 (같은 위치의 선수들을 하나로 묶기)
+        // 각 선수를 표준 포지션에 맞게 개별 배치 (레퍼런스 위치에 맞게)
         const playersByLocation = new Map(); // "x-y" -> { pos: {x, y}, players: [{id, name}] }
         
         // cluster.players 배열과 player_names 배열을 매칭
@@ -673,18 +710,15 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
             if (player || playerNames[playerIdx]) {
                 const pos = findPlayerPosition(playerId, teamData);
                 if (pos) {
-                    // 좌표를 반올림하여 근접한 위치를 같은 그룹으로 처리
-                    // 같은 포지션의 선수들은 널찍한 간격을 두고 배치 (1.0 단위로 더 넓게)
-                    const roundedX = Math.round(pos.x);
-                    const roundedY = Math.round(pos.y);
-                    const locationKey = `${roundedX}-${roundedY}`;
-                    
+                    // 각 선수를 표준 포지션에 맞게 개별 배치 (그룹화하지 않고 각각 배치)
+                    // 같은 포지션의 선수들은 findPlayerPosition에서 이미 적절히 분산 배치됨
                     playerPositions.set(playerId, pos);
                     
-                    // 같은 위치의 선수들을 그룹화
+                    // 각 선수를 개별 위치에 배치 (같은 위치에 여러 선수가 있어도 각각 표시)
+                    const locationKey = `${pos.x}-${pos.y}`;
                     if (!playersByLocation.has(locationKey)) {
                         playersByLocation.set(locationKey, {
-                            pos: { x: roundedX, y: roundedY },
+                            pos: { x: pos.x, y: pos.y },
                             players: []
                         });
                     }
