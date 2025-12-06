@@ -321,6 +321,11 @@ function displayBest11() {
     document.getElementById('player-detail').classList.add('hidden');
     document.getElementById('team-analysis').classList.add('hidden');
     document.getElementById('best-11').classList.remove('hidden');
+    // 고정 버튼 표시/숨기기
+    document.getElementById('back-to-teams-fixed').classList.add('hidden');
+    document.getElementById('back-to-players-fixed').classList.add('hidden');
+    document.getElementById('back-to-players-from-analysis-fixed').classList.add('hidden');
+    document.getElementById('back-to-teams-from-best11-fixed').classList.remove('hidden');
     
     // 베스트 11 렌더링 (기본 포메이션: 4-3-3)
     const content = document.getElementById('best-11-content');
