@@ -569,30 +569,34 @@ function findPlayerPosition(playerId, teamData) {
         return { x: 50, y: 34 }; // 기본값: 중앙
     }
     
-    // CB의 경우, 같은 팀의 다른 CB와 구분하여 배치 (x축 좌우로 널찍한 간격)
-    // 골 에어리어 모서리(x=5.5)보다 약간 앞에 배치하되, 페널티 박스 안 공간을 좌우로 넓게 활용
+    // CB의 경우, 같은 팀의 다른 CB와 구분하여 배치
+    // 표준 축구 전술 다이어그램 기준: CB는 페널티 박스 안에서 골 에어리어 근처에 좌우로 적절한 간격 배치
+    // 참고: Opta, StatsBomb, Wyscout - CB는 보통 x=7-11, y=25-42 범위에 배치
     if (player.position === 'CB') {
         // 팀의 모든 CB 찾기
         const allCBs = teamData.players.filter(p => p.position === 'CB');
         const cbIndex = allCBs.findIndex(p => p.player_id === playerId);
-        // 골 에어리어 모서리: x = 5.5 (골 에어리어의 끝)
-        // 모서리보다 약간 앞에 배치: x = 6.5-7 (약 1cm 앞)
-        const goalAreaEdge = 5.5; // 골 에어리어의 x 좌표 끝
-        const offset = 1.5; // 골 에어리어 모서리보다 약간 앞 (약 1cm)
-        const baseX = goalAreaEdge + offset; // x = 7 (골 에어리어 모서리보다 약간 앞)
-        const spacing = 4; // CB 간 x축 좌우 간격 (페널티 박스 안 공간 좌우로 넓게 활용)
-        const centerY = 34; // y축은 중앙에 고정
+        // 페널티 박스: x=0-16.5, y=13.84-54.16
+        // 골 에어리어: x=0-5.5, y=24.66-43.34
+        // 표준 배치: 골 에어리어 모서리(x=5.5)보다 약간 앞, 페널티 박스 중앙(y=34) 기준 좌우 배치
+        const baseX = 8; // 골 에어리어 모서리(5.5)보다 약간 앞, 페널티 박스 안 적절한 위치
+        const centerY = 34; // 필드 중앙
+        const ySpacing = 6; // CB 간 y축 간격 (위아래로 적절한 간격)
+        const xSpacing = 2; // CB 간 x축 간격 (좌우로 적절한 간격)
         
         if (cbIndex === 0) {
-            return { x: baseX - spacing, y: centerY }; // 첫 번째 CB: 왼쪽 (x: 3, y: 34)
+            return { x: baseX - xSpacing, y: centerY - ySpacing }; // 왼쪽 위 CB (x: 6, y: 28)
         } else if (cbIndex === 1) {
-            return { x: baseX + spacing, y: centerY }; // 두 번째 CB: 오른쪽 (x: 11, y: 34)
+            return { x: baseX + xSpacing, y: centerY + ySpacing }; // 오른쪽 아래 CB (x: 10, y: 40)
         } else {
-            // 3명 이상인 경우 추가 배치 (x축 좌우로 널찍한 간격 유지)
-            const totalSpacing = spacing * 2; // 좌우 총 간격
-            const startX = baseX - spacing;
-            const step = totalSpacing / (allCBs.length - 1);
-            return { x: startX + (cbIndex * step), y: centerY };
+            // 3명 이상인 경우 추가 배치
+            const startX = baseX - xSpacing;
+            const startY = centerY - ySpacing;
+            const totalXSpacing = xSpacing * 2;
+            const totalYSpacing = ySpacing * 2;
+            const xStep = totalXSpacing / (allCBs.length - 1);
+            const yStep = totalYSpacing / (allCBs.length - 1);
+            return { x: startX + (cbIndex * xStep), y: startY + (cbIndex * yStep) };
         }
     }
     
