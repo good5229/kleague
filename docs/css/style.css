@@ -187,6 +187,17 @@ header h1 {
     color: #666;
 }
 
+.war-stat {
+    font-size: 0.85em;
+    color: var(--team-primary, #667eea);
+    font-weight: bold;
+    margin-top: 5px;
+    padding: 4px 8px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 4px;
+    display: inline-block;
+}
+
 .back-button-container {
     margin-bottom: 20px;
     display: flex;
