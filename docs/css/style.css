@@ -20,7 +20,7 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 20px;
     position: relative;
@@ -716,6 +716,12 @@ footer {
     grid-template-columns: 200px 1fr; /* 게이지와 필드만 표시 */
     gap: 20px;
     align-items: center;
+    min-height: 400px;
+}
+
+.field-container {
+    min-width: 0; /* 그리드 오버플로우 방지 */
+    overflow: visible;
 }
 
 .gauge-container {

@@ -409,7 +409,7 @@ function adjustNodePositions(nodes, fieldWidth = 100, fieldHeight = 68) {
     return adjustedNodes;
 }
 
-// 선수 마커 생성 (선수 이름 표시 개선)
+// 선수 마커 생성 (선수 이름 표시 개선, 줄바꿈 지원)
 function createPlayerMarker(playerName, x, y, color) {
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('transform', `translate(${x}, ${y})`);
@@ -423,23 +423,29 @@ function createPlayerMarker(playerName, x, y, color) {
     circle.setAttribute('class', 'player-marker');
     g.appendChild(circle);
     
-    // 선수 이름 텍스트 (항상 표시)
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', '0');
-    text.setAttribute('y', '-6');
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('font-size', '2.5');
-    text.setAttribute('font-weight', 'bold');
-    text.setAttribute('fill', '#fff');
-    text.setAttribute('stroke', '#000');
-    text.setAttribute('stroke-width', '0.2');
-    text.setAttribute('paint-order', 'stroke fill');
-    text.textContent = playerName;
-    g.appendChild(text);
+    // 선수 이름 텍스트 (줄바꿈 지원)
+    const lines = playerName.split('\n');
+    const lineHeight = 3;
+    const startY = -6 - ((lines.length - 1) * lineHeight / 2);
+    
+    lines.forEach((line, idx) => {
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', '0');
+        text.setAttribute('y', startY + (idx * lineHeight));
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-size', '2.5');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('fill', '#fff');
+        text.setAttribute('stroke', '#000');
+        text.setAttribute('stroke-width', '0.2');
+        text.setAttribute('paint-order', 'stroke fill');
+        text.textContent = line;
+        g.appendChild(text);
+    });
     
     // 선수 이름 (호버 시 상세 표시)
     const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-    title.textContent = playerName;
+    title.textContent = playerName.replace(/\n/g, ', ');
     g.appendChild(title);
     
     return g;
@@ -532,8 +538,8 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
         // 승률 게이지
         const winRateGauge = createWinRateGauge(cluster.win_rate, cluster.active_games);
         
-        // 필드 다이어그램
-        const fieldSVG = createFootballFieldSVG(500, 350);
+        // 필드 다이어그램 (크기 확대)
+        const fieldSVG = createFootballFieldSVG(800, 560);
         
         // DocumentFragment로 배치 최적화
         const fieldFragment = document.createDocumentFragment();
@@ -599,8 +605,7 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
             });
         }
         
-        // 그룹화된 선수들을 노드 배열로 준비 (위치 조정 전)
-        const nodesToPlace = [];
+        // 그룹화된 선수들을 마커로 생성 (원래 위치 유지, 텍스트 줄바꿈 처리)
         playersByLocation.forEach((group, locationKey) => {
             let text, hue, color;
             if (group.players.length === 1) {
@@ -609,38 +614,25 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
                 text = player.name;
                 hue = (player.id || 0) % 360;
             } else {
-                // 같은 위치의 여러 선수 - 콤마로 구분
-                text = group.players.map(p => p.name).join(', ');
+                // 같은 위치의 여러 선수 - 콤마로 구분 (줄바꿈 처리)
+                const names = group.players.map(p => p.name);
+                // 긴 텍스트는 줄바꿈 (예: 3명 이상이거나 총 길이가 15자 이상)
+                if (names.length > 2 || names.join(', ').length > 15) {
+                    // 2명씩 줄바꿈
+                    const lines = [];
+                    for (let i = 0; i < names.length; i += 2) {
+                        lines.push(names.slice(i, i + 2).join(', '));
+                    }
+                    text = lines.join('\n');
+                } else {
+                    text = names.join(', ');
+                }
                 hue = (group.players[0].id || 0) % 360;
             }
             color = `hsl(${hue}, 70%, 50%)`;
             
-            nodesToPlace.push({
-                x: group.pos.x,
-                y: group.pos.y,
-                text: text,
-                color: color,
-                players: group.players
-            });
-        });
-        
-        // 노드 위치 조정 (충돌 방지)
-        const fieldWidth = 100; // viewBox 기준
-        const fieldHeight = 68;
-        const adjustedNodes = adjustNodePositions(nodesToPlace, fieldWidth, fieldHeight);
-        
-        // 조정된 위치로 마커 생성 및 위치 매핑
-        const adjustedPositionsMap = new Map(); // playerId -> adjusted position
-        adjustedNodes.forEach((node, nodeIdx) => {
-            const marker = createPlayerMarker(node.text, node.x, node.y, node.color);
+            const marker = createPlayerMarker(text, group.pos.x, group.pos.y, color);
             fieldFragment.appendChild(marker);
-            
-            // 조정된 위치를 선수 ID에 매핑 (연결선용)
-            node.players.forEach(player => {
-                if (player.id) {
-                    adjustedPositionsMap.set(player.id, { x: node.x, y: node.y });
-                }
-            });
         });
         
         // 클러스터 연결선 (선수 간 패스) - 조정된 위치 사용
@@ -655,9 +647,8 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
         const playerIds = Array.from(playerPositions.keys());
         for (let i = 0; i < playerIds.length && connections.length < 10; i++) {
             for (let j = i + 1; j < playerIds.length && connections.length < 10; j++) {
-                // 조정된 위치 우선 사용, 없으면 원래 위치 사용
-                const pos1 = adjustedPositionsMap.get(playerIds[i]) || playerPositions.get(playerIds[i]);
-                const pos2 = adjustedPositionsMap.get(playerIds[j]) || playerPositions.get(playerIds[j]);
+                const pos1 = playerPositions.get(playerIds[i]);
+                const pos2 = playerPositions.get(playerIds[j]);
                 
                 if (pos1 && pos2) {
                     const connection = createPassConnection(pos1.x, pos1.y, pos2.x, pos2.y, cluster.cohesion / 10);
