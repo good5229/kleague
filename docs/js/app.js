@@ -197,7 +197,10 @@ window.selectPlayer = function(playerId) {
     document.getElementById('player-list').classList.add('hidden');
     document.getElementById('player-detail').classList.remove('hidden');
     document.getElementById('team-analysis').classList.add('hidden');
-    document.getElementById('best-11-section').classList.add('hidden');
+    const best11Section = document.getElementById('best-11');
+    if (best11Section) {
+        best11Section.classList.add('hidden');
+    }
     
     // 선수 이름 표시
     document.getElementById('player-name-header').textContent = player.player_name;
