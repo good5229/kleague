@@ -218,24 +218,56 @@ def find_recommended_players(target_team_data, all_teams_data, target_team_name)
     
     return recommendations, weaknesses
 
-def generate_best_11(all_teams_data):
-    """리그 전체 베스트 11 생성"""
-    # 포지션별 최고 선수 선택
-    position_priority = {
+# 포메이션별 포지션 구성 정의
+FORMATION_CONFIGS = {
+    '4-4-2': {
         'GK': 1,
-        'CB': 2,  # 2명
-        'LB': 1,
-        'RB': 1,
-        'CDM': 1,
-        'CM': 2,  # 2명
+        'LB': 1, 'CB': 2, 'RB': 1,
+        'LM': 1, 'CM': 2, 'RM': 1,
+        'ST': 2
+    },
+    '4-3-3': {
+        'GK': 1,
+        'LB': 1, 'CB': 2, 'RB': 1,
+        'CDM': 1, 'CM': 2,
+        'LW': 1, 'ST': 1, 'RW': 1
+    },
+    '5-3-2': {
+        'GK': 1,
+        'LWB': 1, 'CB': 3, 'RWB': 1,
+        'CM': 3,
+        'ST': 2
+    },
+    '4-3-1-2': {
+        'GK': 1,
+        'LB': 1, 'CB': 2, 'RB': 1,
+        'CM': 3,
         'CAM': 1,
-        'LW': 1,
-        'RW': 1,
+        'ST': 2
+    },
+    '4-5-1': {
+        'GK': 1,
+        'LB': 1, 'CB': 2, 'RB': 1,
+        'LM': 1, 'CM': 3, 'RM': 1,
         'ST': 1
     }
+}
+
+def generate_best_11_for_formation(all_teams_data, formation_name):
+    """특정 포메이션에 대한 베스트 11 생성 (중복 방지, 포지션 매핑 지원)"""
+    if formation_name not in FORMATION_CONFIGS:
+        return {}
     
-    best_11 = {}
+    position_requirements = FORMATION_CONFIGS[formation_name]
     all_players = []
+    
+    # 포지션 매핑 (LM/RM -> CM, LWB/RWB -> LB/RB)
+    position_mapping = {
+        'LM': 'CM',
+        'RM': 'CM',
+        'LWB': 'LB',
+        'RWB': 'RB'
+    }
     
     # 모든 선수 수집
     for team_name, team_data in all_teams_data.items():
@@ -251,17 +283,29 @@ def generate_best_11(all_teams_data):
                 'team_win_rate': player.get('team_win_rate', 0.5)
             })
     
-    # 포지션별로 정렬하여 최고 선수 선택
-    for position, count in position_priority.items():
-        position_players = [p for p in all_players if p['position'] == position]
+    # 선수 중복 방지를 위한 집합
+    selected_player_ids = set()
+    best_11 = {}
+    
+    # 포지션별로 최고 선수 선택 (중복 방지)
+    for position, count in position_requirements.items():
+        # 포지션 매핑 적용
+        search_position = position_mapping.get(position, position)
+        
+        # 해당 포지션의 선수들 중 아직 선택되지 않은 선수만 필터링
+        position_players = [
+            p for p in all_players 
+            if p['position'] == search_position and p['player_id'] not in selected_player_ids
+        ]
         position_players.sort(key=lambda x: x['fit_score'], reverse=True)
         
         selected = []
         for player in position_players[:count]:
+            selected_player_ids.add(player['player_id'])
             selected.append({
                 'player_id': player['player_id'],
                 'player_name': player['player_name'],
-                'position': position,
+                'position': position,  # 원래 포지션 이름 유지 (LM, RM 등)
                 'role': player['role'],
                 'fit_score': round(player['fit_score'], 1),
                 'team_name': player['team_name'],
@@ -273,6 +317,17 @@ def generate_best_11(all_teams_data):
             best_11[position] = selected
     
     return best_11
+
+def generate_best_11(all_teams_data):
+    """모든 포메이션에 대한 베스트 11 생성"""
+    best_11_by_formation = {}
+    
+    for formation_name in FORMATION_CONFIGS.keys():
+        best_11_by_formation[formation_name] = generate_best_11_for_formation(
+            all_teams_data, formation_name
+        )
+    
+    return best_11_by_formation
 
 def generate_improvement_data():
     """모든 팀의 개선점 분석 및 베스트 11 생성"""
