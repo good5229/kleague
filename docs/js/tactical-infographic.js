@@ -427,9 +427,12 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
         // DocumentFragment로 배치 최적화
         const fieldFragment = document.createDocumentFragment();
         
-        // 선수 위치 캐싱 및 마커 생성 (모든 선수 표시)
-        const playerPositions = new Map();
+        // 선수 위치 캐싱 및 마커 생성 (같은 위치의 선수들을 그룹화)
+        const playerPositions = new Map(); // playerId -> position (연결선용)
         const playerNames = cluster.player_names || [];
+        
+        // 좌표별로 선수 그룹화 (같은 위치의 선수들을 하나로 묶기)
+        const playersByLocation = new Map(); // "x-y" -> { pos: {x, y}, players: [{id, name}] }
         
         // cluster.players 배열과 player_names 배열을 매칭
         cluster.players.forEach((playerId, playerIdx) => {
@@ -439,12 +442,24 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
             if (player || playerNames[playerIdx]) {
                 const pos = findPlayerPosition(playerId, teamData);
                 if (pos) {
+                    // 좌표를 반올림하여 근접한 위치를 같은 그룹으로 처리 (0.5 단위)
+                    const roundedX = Math.round(pos.x * 2) / 2;
+                    const roundedY = Math.round(pos.y * 2) / 2;
+                    const locationKey = `${roundedX}-${roundedY}`;
+                    
                     playerPositions.set(playerId, pos);
-                    // 색상 그라데이션 (클러스터 내 선수 구분)
-                    const hue = (playerIdx * 60) % 360;
-                    const color = `hsl(${hue}, 70%, 50%)`;
-                    const marker = createPlayerMarker(playerName, pos.x, pos.y, color);
-                    fieldFragment.appendChild(marker);
+                    
+                    // 같은 위치의 선수들을 그룹화
+                    if (!playersByLocation.has(locationKey)) {
+                        playersByLocation.set(locationKey, {
+                            pos: { x: roundedX, y: roundedY },
+                            players: []
+                        });
+                    }
+                    playersByLocation.get(locationKey).players.push({
+                        id: playerId,
+                        name: playerName
+                    });
                 }
             }
         });
@@ -455,13 +470,42 @@ function createClusterEffectivenessInfographic(container, clusters, teamData) {
                 if (nameIdx >= cluster.players.length) {
                     // 새로운 선수 위치 찾기 (기본 위치 사용)
                     const defaultPos = { x: 50 + (nameIdx % 3) * 10, y: 20 + Math.floor(nameIdx / 3) * 15 };
-                    const hue = (nameIdx * 60) % 360;
-                    const color = `hsl(${hue}, 70%, 50%)`;
-                    const marker = createPlayerMarker(playerName, defaultPos.x, defaultPos.y, color);
-                    fieldFragment.appendChild(marker);
+                    const roundedX = Math.round(defaultPos.x * 2) / 2;
+                    const roundedY = Math.round(defaultPos.y * 2) / 2;
+                    const locationKey = `${roundedX}-${roundedY}`;
+                    
+                    if (!playersByLocation.has(locationKey)) {
+                        playersByLocation.set(locationKey, {
+                            pos: { x: roundedX, y: roundedY },
+                            players: []
+                        });
+                    }
+                    playersByLocation.get(locationKey).players.push({
+                        id: null,
+                        name: playerName
+                    });
                 }
             });
         }
+        
+        // 그룹화된 선수들을 마커로 생성
+        playersByLocation.forEach((group, locationKey) => {
+            if (group.players.length === 1) {
+                // 단일 선수
+                const player = group.players[0];
+                const hue = (player.id || 0) % 360;
+                const color = `hsl(${hue}, 70%, 50%)`;
+                const marker = createPlayerMarker(player.name, group.pos.x, group.pos.y, color);
+                fieldFragment.appendChild(marker);
+            } else {
+                // 같은 위치의 여러 선수 - 콤마로 구분
+                const names = group.players.map(p => p.name).join(', ');
+                const hue = (group.players[0].id || 0) % 360;
+                const color = `hsl(${hue}, 70%, 50%)`;
+                const marker = createPlayerMarker(names, group.pos.x, group.pos.y, color);
+                fieldFragment.appendChild(marker);
+            }
+        });
         
         // 클러스터 연결선 (선수 간 패스) - 최적화: 상위 연결만 표시
         let defs = fieldSVG.querySelector('defs');
