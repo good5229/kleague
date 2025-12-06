@@ -61,6 +61,14 @@ function selectTeam(teamName) {
     document.getElementById('player-list').classList.remove('hidden');
     document.getElementById('player-detail').classList.add('hidden');
     document.getElementById('team-analysis').classList.add('hidden');
+    document.getElementById('best-11').classList.add('hidden');
+    // 고정 버튼 표시/숨기기
+    document.getElementById('back-to-teams-fixed').classList.remove('hidden');
+    document.querySelectorAll('.fixed-back-button').forEach(btn => {
+        if (btn.id !== 'back-to-teams-fixed') {
+            btn.classList.add('hidden');
+        }
+    });
     
     // 팀 이름 및 로고 표시
     const teamHeader = document.getElementById('team-name-header');
@@ -201,6 +209,11 @@ window.selectPlayer = function(playerId) {
     if (best11Section) {
         best11Section.classList.add('hidden');
     }
+    // 고정 버튼 표시/숨기기
+    document.getElementById('back-to-teams-fixed').classList.add('hidden');
+    document.getElementById('back-to-players-fixed').classList.remove('hidden');
+    document.getElementById('back-to-players-from-analysis-fixed').classList.add('hidden');
+    document.getElementById('back-to-teams-from-best11-fixed').classList.add('hidden');
     
     // 선수 이름 표시
     document.getElementById('player-name-header').textContent = player.player_name;
@@ -992,7 +1005,19 @@ document.getElementById('back-to-players-from-analysis').addEventListener('click
     document.getElementById('player-list').classList.remove('hidden');
     document.getElementById('player-detail').classList.add('hidden');
     document.getElementById('team-analysis').classList.add('hidden');
+    document.getElementById('best-11').classList.add('hidden');
+    // 고정 버튼 표시/숨기기
+    document.getElementById('back-to-players-from-analysis-fixed').classList.add('hidden');
+    document.getElementById('back-to-teams-fixed').classList.remove('hidden');
 });
+
+// 고정 뒤로가기 버튼 (팀 분석)
+const backToPlayersFromAnalysisFixed = document.getElementById('back-to-players-from-analysis-fixed');
+if (backToPlayersFromAnalysisFixed) {
+    backToPlayersFromAnalysisFixed.addEventListener('click', () => {
+        document.getElementById('back-to-players-from-analysis').click();
+    });
+}
 
 // 베스트 11 보기 버튼
 document.getElementById('view-best-11').addEventListener('click', () => {
@@ -1006,7 +1031,17 @@ document.getElementById('back-to-teams-from-best11').addEventListener('click', (
     document.getElementById('player-detail').classList.add('hidden');
     document.getElementById('team-analysis').classList.add('hidden');
     document.getElementById('best-11').classList.add('hidden');
+    // 고정 버튼 숨기기
+    document.querySelectorAll('.fixed-back-button').forEach(btn => btn.classList.add('hidden'));
 });
+
+// 고정 뒤로가기 버튼 (베스트 11)
+const backToTeamsFromBest11Fixed = document.getElementById('back-to-teams-from-best11-fixed');
+if (backToTeamsFromBest11Fixed) {
+    backToTeamsFromBest11Fixed.addEventListener('click', () => {
+        document.getElementById('back-to-teams-from-best11').click();
+    });
+}
 
 // 페이지 로드 시 개선점 데이터도 로딩
 window.addEventListener('DOMContentLoaded', () => {

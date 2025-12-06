@@ -204,6 +204,15 @@ header h1 {
     gap: 10px;
 }
 
+/* 좌하단 고정 뒤로가기 버튼 */
+.fixed-back-button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
 .sort-controls {
     margin-bottom: 20px;
     padding: 15px;
